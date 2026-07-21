@@ -15,20 +15,18 @@
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans pb-16 min-h-screen">
 
-  <!-- Flashy Header with Custom Logo -->
+  <!-- Header -->
   <header class="bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 text-white p-4 shadow-2xl sticky top-0 z-50 border-b border-amber-400/20 backdrop-blur-md">
     <div class="max-w-md mx-auto flex justify-between items-center">
-      <!-- Logo Branding -->
       <div class="flex items-center space-x-3 space-x-reverse">
         <div class="w-11 h-11 bg-slate-900/20 rounded-2xl flex items-center justify-center shadow-inner border border-white/30 backdrop-blur-sm">
-          <i class="fa-solid fa-screwdriver-wrench text-xl text-white animate-bounce"></i>
+          <i class="fa-solid fa-screwdriver-wrench text-xl text-white"></i>
         </div>
         <div>
           <h1 class="text-xl font-black tracking-wider bg-gradient-to-r from-white to-amber-100 bg-clip-text text-transparent">صنايعي</h1>
           <p class="text-[10px] text-amber-100 font-semibold tracking-wide">SANAYEI • السودان</p>
         </div>
       </div>
-      <!-- Portal Toggle Button -->
       <button onclick="toggleView()" id="nav-toggle" class="bg-slate-900/80 hover:bg-slate-900 text-xs px-4 py-2.5 rounded-xl font-bold shadow-lg transition-all border border-amber-400/40 text-amber-300 flex items-center gap-1.5 cursor-pointer">
         <i class="fa-solid fa-user-gear"></i> بوابة الفنيين
       </button>
@@ -39,7 +37,6 @@
 
     <!-- CUSTOMER VIEW -->
     <div id="customer-view" class="space-y-4">
-      <!-- Hero Banner -->
       <div class="bg-gradient-to-br from-slate-800 to-slate-800/80 border border-slate-700/80 p-5 rounded-3xl shadow-xl relative overflow-hidden">
         <div class="absolute -left-6 -bottom-6 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl"></div>
         <h2 class="text-xl font-black text-white mb-1">اعثر على أفضل الفنيين المعتمدين</h2>
@@ -102,15 +99,14 @@
 
         <div class="mt-6 pt-4 border-t border-slate-700/60 text-center">
           <p class="text-xs text-slate-400">لست مسجلاً بعد؟</p>
-          <button onclick="showRegisterModal()" class="text-amber-400 hover:text-amber-300 text-xs font-bold mt-1 transition-colors cursor-pointer">
+          <button type="button" onclick="showRegisterModal()" class="text-amber-400 hover:text-amber-300 text-xs font-bold mt-1 transition-colors cursor-pointer bg-transparent border-0">
             إنشاء حساب فني جديد (مجاناً) <i class="fa-solid fa-arrow-left mr-1"></i>
           </button>
         </div>
       </div>
 
-      <!-- Dashboard Panel (Hidden until login) -->
+      <!-- Dashboard Panel -->
       <div id="dashboard-section" class="hidden space-y-4">
-        <!-- Technician Info Card -->
         <div class="bg-gradient-to-r from-amber-500/10 via-slate-800 to-slate-800 border border-amber-500/30 p-5 rounded-3xl shadow-xl flex justify-between items-center">
           <div class="space-y-1">
             <span class="bg-amber-500/20 text-amber-400 text-[10px] px-2.5 py-0.5 rounded-full font-bold">حساب نشط</span>
@@ -122,7 +118,6 @@
           </button>
         </div>
 
-        <!-- Job Leads Section -->
         <div class="bg-slate-800/90 border border-slate-700 p-5 rounded-3xl shadow-xl">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-bold text-sm text-white flex items-center gap-2">
@@ -142,7 +137,7 @@
       <div id="register-section" class="bg-slate-800/90 border border-slate-700 p-6 rounded-3xl shadow-2xl hidden backdrop-blur-md">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-base font-black text-white">انضم إلى صنايعي (مجاناً 100%)</h2>
-          <button onclick="hideRegisterModal()" class="text-slate-400 hover:text-white cursor-pointer">
+          <button type="button" onclick="hideRegisterModal()" class="text-slate-400 hover:text-white cursor-pointer bg-transparent border-0">
             <i class="fa-solid fa-xmark text-lg"></i>
           </button>
         </div>
@@ -187,7 +182,7 @@
     <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <h3 class="font-black text-base text-white" id="modal-tech-title">طلب خدمة فني</h3>
-        <button onclick="closeBookingModal()" class="text-slate-400 hover:text-white cursor-pointer">
+        <button type="button" onclick="closeBookingModal()" class="text-slate-400 hover:text-white cursor-pointer bg-transparent border-0">
           <i class="fa-solid fa-xmark text-xl"></i>
         </button>
       </div>
@@ -232,6 +227,8 @@
       const techView = document.getElementById('tech-view');
       const toggleBtn = document.getElementById('nav-toggle');
       
+      if(!custView || !techView || !toggleBtn) return;
+
       if(custView.classList.contains('hidden')) {
         custView.classList.remove('hidden');
         techView.classList.add('hidden');
@@ -273,7 +270,7 @@
               <i class="fa-solid fa-location-dot text-amber-500"></i> ${t.area}
             </p>
           </div>
-          <button onclick="openBookingModal('${t.id}', '${t.name}')" class="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 text-xs px-4 py-2.5 rounded-xl font-black shadow-md shadow-amber-500/20 transition-all cursor-pointer">
+          <button type="button" onclick="openBookingModal('${t.id}', '${t.name.replace(/'/g, "\\'")}')" class="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 text-xs px-4 py-2.5 rounded-xl font-black shadow-md shadow-amber-500/20 transition-all cursor-pointer">
             طلب فني
           </button>
         </div>
@@ -294,13 +291,17 @@
     }
 
     function showRegisterModal() {
-      document.getElementById('login-section').classList.add('hidden');
-      document.getElementById('register-section').classList.remove('hidden');
+      const loginSec = document.getElementById('login-section');
+      const regSec = document.getElementById('register-section');
+      if(loginSec) loginSec.classList.add('hidden');
+      if(regSec) regSec.classList.remove('hidden');
     }
 
     function hideRegisterModal() {
-      document.getElementById('register-section').classList.add('hidden');
-      document.getElementById('login-section').classList.remove('hidden');
+      const regSec = document.getElementById('register-section');
+      const loginSec = document.getElementById('login-section');
+      if(regSec) regSec.classList.add('hidden');
+      if(loginSec) loginSec.classList.remove('hidden');
     }
 
     async function handleRegister(e) {
@@ -347,7 +348,4 @@
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ phone, pin })
         });
-        const data = await res.json();
-        if(res.ok) matchedTech = data.technician;
-      } catch (err) {
-        matchedTech = allTechs.find(t => t.phone === phon
+        const da

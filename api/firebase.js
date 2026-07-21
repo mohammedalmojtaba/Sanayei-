@@ -3,16 +3,22 @@ import { getFirestore } from 'firebase-admin/firestore';
 
 if (!getApps().length) {
   let serviceAccount;
+  const rawKey = process.env.FIREBASE_SERVICE_ACCOUNT || '{}';
   try {
-    const rawKey = process.env.FIREBASE_SERVICE_ACCOUNT;
     serviceAccount = JSON.parse(rawKey);
   } catch (e) {
-    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT.replace(/\\n/g, '\n'));
+    try {
+      serviceAccount = JSON.parse(rawKey.replace(/\\n/g, '\n'));
+    } catch (err) {
+      console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT environment variable');
+    }
   }
 
-  initializeApp({
-    credential: cert(serviceAccount)
-  });
+  if (serviceAccount && serviceAccount.project_id) {
+    initializeApp({
+      credential: cert(serviceAccount)
+    });
+  }
 }
 
 export const db = getFirestore();
