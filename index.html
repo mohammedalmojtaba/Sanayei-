@@ -20,7 +20,7 @@
     <div class="max-w-md mx-auto flex justify-between items-center">
       <div class="flex items-center space-x-3 space-x-reverse">
         <div class="w-11 h-11 bg-slate-900/20 rounded-2xl flex items-center justify-center shadow-inner border border-white/30 backdrop-blur-sm">
-          <i class="fa-solid fa-screwdriver-wrench text-xl text-white"></i>
+          <i class="fa-solid fa-screwdriver-wrench text-xl text-white animate-bounce"></i>
         </div>
         <div>
           <h1 class="text-xl font-black tracking-wider bg-gradient-to-r from-white to-amber-100 bg-clip-text text-transparent">صنايعي</h1>
@@ -169,7 +169,7 @@
           </div>
           <div>
             <label class="text-xs font-semibold text-slate-300 block mb-1">التخصص المهني</label>
-            <select id="reg-trade" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white">
+            <select id="reg-trade" onchange="handleTradeChange(this.value)" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white">
               <option value="كهربائي">كهربائي</option>
               <option value="سباك">سباك</option>
               <option value="مكيفات">صيانة مكيفات</option>
@@ -178,20 +178,36 @@
               <option value="أخرى">أخرى</option>
             </select>
           </div>
+
+          <!-- Custom Trade Input (Hidden by default, shown when 'أخرى' is selected) -->
+          <div id="custom-trade-container" class="hidden">
+            <label class="text-xs font-semibold text-slate-300 block mb-1">اكتب التخصص بدقة (حد أقصى 5 كلمات)</label>
+            <input type="text" id="reg-custom-trade" oninput="validateCustomTradeWords(this)" placeholder="مثال: فني كاميرات مراقبة" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white">
+            <p class="text-[10px] text-amber-400 mt-1">الحد الأقصى المسموح به هو 5 كلمات فقط.</p>
+          </div>
+
           <div>
             <label class="text-xs font-semibold text-slate-300 block mb-1">الحي / المنطقة في السودان</label>
-            <input type="text" id="reg-area" placeholder="مثال: بورتسودان، الدقاق" required class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white">
+            <input type="text" id="reg-area" placeholder="بورتسودان - السوق الكبير" required class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white">
           </div>
 
           <!-- 10% Commission Notice & Agreement Checkbox -->
-          <div class="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-2xl space-y-2 mt-2">
+          <div class="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-2xl space-y-2.5 mt-2">
             <div class="flex items-start gap-2">
               <i class="fa-solid fa-circle-exclamation text-amber-400 text-sm mt-0.5"></i>
-              <p class="text-[11px] text-amber-200 leading-relaxed font-medium">
-                تنبيه شروط المنصة: يلتزم الفني بدفع نسبة <strong class="text-white">10%</strong> كعمولة للمنصة بعد إتمام كل عملية صيانة يتم الحصول عليها عبر التطبيق.
-              </p>
+              <div class="space-y-1.5">
+                <p class="text-[11px] text-amber-200 leading-relaxed font-medium">
+                  تنبيه شروط المنصة: يلتزم الفني بدفع نسبة <strong class="text-white">10%</strong> كعمولة للمنصة بعد إتمام كل عملية صيانة يتم الحصول عليها عبر التطبيق.
+                </p>
+                <p class="text-[10px] text-amber-300/90 leading-relaxed">
+                  لدفع العمولة وتجنب حذف حسابك وحظرك من المنصة، يرجى التواصل معنا عبر واتساب:
+                </p>
+                <a href="https://wa.me/249999119052" target="_blank" class="inline-flex items-center gap-1.5 text-[11px] text-emerald-400 hover:text-emerald-300 font-bold bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-500/30 transition-colors mt-0.5">
+                  <i class="fa-brands fa-whatsapp"></i> التواصل عبر واتساب للدفع
+                </a>
+              </div>
             </div>
-            <div class="flex items-center gap-2 pt-1 border-t border-amber-500/20">
+            <div class="flex items-center gap-2 pt-2 border-t border-amber-500/20">
               <input type="checkbox" id="reg-agree" required class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
               <label for="reg-agree" class="text-xs text-slate-200 cursor-pointer font-bold">
                 أوافق على دفع نسبة الـ 10% كعمولة للمنصة بعد إتمام العمل
@@ -229,12 +245,28 @@
         </div>
         <div>
           <label class="text-xs font-semibold text-slate-300 block mb-1">الحي / العنوان بالتفصيل</label>
-          <input type="text" id="book-address" placeholder="مثال: الدقاق بالقرب من الشارع الرئيسي" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+          <input type="text" id="book-address" placeholder="مثال: بورتسودان، هدل، بالقرب من سوق هدل" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
         </div>
         <div>
           <label class="text-xs font-semibold text-slate-300 block mb-1">وصف العطل باختصار</label>
           <textarea id="book-desc" rows="2" placeholder="ما الذي يحتاج إلى صيانة؟" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"></textarea>
         </div>
+
+        <!-- Customer Notice & WhatsApp Support Alert -->
+        <div class="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-2xl space-y-2 mt-1">
+          <div class="flex items-start gap-2">
+            <i class="fa-solid fa-circle-exclamation text-amber-400 text-sm mt-0.5"></i>
+            <div class="space-y-1">
+              <p class="text-[11px] text-amber-200 leading-relaxed font-medium">
+                تنبيه للمستخدم: يتم الدفع مباشرة للفني بعد إتمام العمل بنجاح. لأي استفسارات أو بلاغات، يرجى التواصل معنا عبر واتساب.
+              </p>
+              <a href="https://wa.me/249999119052" target="_blank" class="inline-flex items-center gap-1.5 text-[10px] text-emerald-400 hover:text-emerald-300 font-bold bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-500/30 transition-colors mt-0.5">
+                <i class="fa-brands fa-whatsapp"></i> خدمة العملاء عبر واتساب
+              </a>
+            </div>
+          </div>
+        </div>
+
         <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-500/20 transition-all mt-2 cursor-pointer">
           إرسال طلب الخدمة الآن
         </button>
@@ -350,6 +382,26 @@
       renderTechs(filtered);
     }
 
+    function handleTradeChange(val) {
+      const customContainer = document.getElementById('custom-trade-container');
+      const customInput = document.getElementById('reg-custom-trade');
+      if (val === 'أخرى') {
+        customContainer.classList.remove('hidden');
+        customInput.required = true;
+      } else {
+        customContainer.classList.add('hidden');
+        customInput.required = false;
+        customInput.value = '';
+      }
+    }
+
+    function validateCustomTradeWords(input) {
+      const words = input.value.trim().split(/\s+/).filter(Boolean);
+      if (words.length > 5) {
+        input.value = words.slice(0, 5).join(' ');
+      }
+    }
+
     function showRegisterModal() {
       const loginSec = document.getElementById('login-section');
       const regSec = document.getElementById('register-section');
@@ -373,11 +425,26 @@
         return;
       }
 
+      let tradeVal = document.getElementById('reg-trade').value;
+      if (tradeVal === 'أخرى') {
+        const customTradeVal = document.getElementById('reg-custom-trade').value.trim();
+        const wordCount = customTradeVal.split(/\s+/).filter(Boolean).length;
+        if (!customTradeVal) {
+          alert('يرجى كتابة التخصص المطلوب في حقل أخرى');
+          return;
+        }
+        if (wordCount > 5) {
+          alert('عذراً، يجب ألا يتجاوز التخصص المخصص 5 كلمات');
+          return;
+        }
+        tradeVal = customTradeVal;
+      }
+
       const payload = {
         name: document.getElementById('reg-name').value,
         phone: document.getElementById('reg-phone').value,
         pin: document.getElementById('reg-pin').value,
-        trade: document.getElementById('reg-trade').value,
+        trade: tradeVal,
         area: document.getElementById('reg-area').value
       };
 
@@ -400,6 +467,8 @@
 
       alert('تم التسجيل بنجاح! يمكنك تسجيل الدخول الآن.');
       hideRegisterModal();
+      e.target.reset();
+      document.getElementById('custom-trade-container').classList.add('hidden');
       fetchTechnicians();
     }
 
