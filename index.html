@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>صنايعي - Sanayei | دليل الفنيين في السودان</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+    body { font-family: 'Cairo', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans pb-16 min-h-screen">
+
+  <!-- Flashy Header with Custom Logo -->
+  <header class="bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 text-white p-4 shadow-2xl sticky top-0 z-50 border-b border-amber-400/20 backdrop-blur-md">
+    <div class="max-w-md mx-auto flex justify-between items-center">
+      <!-- Logo Branding -->
+      <div class="flex items-center space-x-3 space-x-reverse">
+        <div class="w-11 h-11 bg-slate-900/20 rounded-2xl flex items-center justify-center shadow-inner border border-white/30 backdrop-blur-sm">
+          <i class="fa-solid fa-screwdriver-wrench text-xl text-white animate-bounce"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-black tracking-wider bg-gradient-to-r from-white to-amber-100 bg-clip-text text-transparent">صنايعي</h1>
+          <p class="text-[10px] text-amber-100 font-semibold tracking-wide">SANAYEI • السودان</p>
+        </div>
+      </div>
+      <!-- Portal Toggle Button -->
+      <button onclick="toggleView()" id="nav-toggle" class="bg-slate-900/80 hover:bg-slate-900 text-xs px-4 py-2.5 rounded-xl font-bold shadow-lg transition-all border border-amber-400/40 text-amber-300 flex items-center gap-1.5">
+        <i class="fa-solid fa-user-gear"></i> بوابة الفنيين
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto p-4 mt-2">
+
+    <!-- CUSTOMER VIEW -->
+    <div id="customer-view" class="space-y-4">
+      <!-- Hero Banner -->
+      <div class="bg-gradient-to-br from-slate-800 to-slate-800/80 border border-slate-700/80 p-5 rounded-3xl shadow-xl relative overflow-hidden">
+        <div class="absolute -left-6 -bottom-6 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl"></div>
+        <h2 class="text-xl font-black text-white mb-1">اعثر على أفضل الفنيين المعتمدين</h2>
+        <p class="text-xs text-slate-400 leading-relaxed">خدمات صيانة سريعة وموثوقة في السودان. ادفع للفني مباشرة بعد إتمام العمل بكل سهولة.</p>
+        
+        <!-- Category Filters -->
+        <div class="grid grid-cols-3 gap-2 mt-4">
+          <button onclick="filterTrade('All')" class="category-btn bg-amber-500 text-slate-950 text-xs py-2.5 rounded-xl font-bold shadow-md shadow-amber-500/20 transition-all">الكل</button>
+          <button onclick="filterTrade('Electrician')" class="category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all">كهربائي</button>
+          <button onclick="filterTrade('Plumber')" class="category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all">سباك</button>
+          <button onclick="filterTrade('AC Repair')" class="category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all">مكيفات</button>
+          <button onclick="filterTrade('Generator')" class="category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all">مولدات</button>
+          <button onclick="filterTrade('Carpenter')" class="category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all">نجار</button>
+        </div>
+      </div>
+
+      <!-- Technician Directory List -->
+      <div>
+        <h3 class="text-sm font-bold text-slate-300 mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-amber-500"></i> الفنيون المتاحون الآن
+        </h3>
+        <div id="tech-list" class="space-y-3">
+          <div class="text-center py-10 text-slate-500 text-xs">جاري تحميل قائمة الفنيين...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TECHNICIAN PORTAL VIEW -->
+    <div id="tech-view" class="hidden space-y-4">
+      
+      <!-- Login Card -->
+      <div id="login-section" class="bg-slate-800/90 border border-slate-700 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
+        <div class="text-center mb-6">
+          <div class="inline-flex w-12 h-12 bg-amber-500/10 text-amber-400 rounded-2xl items-center justify-content justify-center mb-2 border border-amber-500/20">
+            <i class="fa-solid fa-shield-halved text-xl"></i>
+          </div>
+          <h2 class="text-lg font-black text-white">تسجيل دخول الفنيين</h2>
+          <p class="text-xs text-slate-400 mt-1">أدخل رقم هاتفك ورمز الحماية الخاص بك</p>
+        </div>
+
+        <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">رقم الهاتف</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400"><i class="fa-solid fa-phone text-xs"></i></span>
+              <input type="tel" id="login-phone" placeholder="0912345678" required class="w-full pr-10 pl-3 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white font-mono">
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">رمز الـ PIN (6 أرقام)</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400"><i class="fa-solid fa-lock text-xs"></i></span>
+              <input type="password" id="login-pin" maxlength="6" placeholder="******" required class="w-full pr-10 pl-3 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm tracking-widest text-center focus:outline-none focus:border-amber-500 text-white font-mono">
+            </div>
+          </div>
+          <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-500/20 transition-all">
+            فتح لوحة التحكم
+          </button>
+        </form>
+
+        <div class="mt-6 pt-4 border-t border-slate-700/60 text-center">
+          <p class="text-xs text-slate-400">لست مسجلاً بعد؟</p>
+          <button onclick="showRegisterModal()" class="text-amber-400 hover:text-amber-300 text-xs font-bold mt-1 transition-colors">
+            إنشاء حساب فني جديد (مجاناً) <i class="fa-solid fa-arrow-left mr-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dashboard Panel (Hidden until login) -->
+      <div id="dashboard-section" class="hidden space-y-4">
+        <!-- Technician Info Card -->
+        <div class="bg-gradient-to-r from-amber-500/10 via-slate-800 to-slate-800 border border-amber-500/30 p-5 rounded-3xl shadow-xl flex justify-between items-center">
+          <div class="space-y-1">
+            <span class="bg-amber-500/20 text-amber-400 text-[10px] px-2.5 py-0.5 rounded-full font-bold">حساب نشط</span>
+            <h3 id="dash-name" class="font-black text-white text-base">مرحباً</h3>
+            <p id="dash-trade" class="text-xs text-slate-400 font-medium"></p>
+          </div>
+          <button onclick="handleLogout()" class="bg-slate-900/80 hover:bg-slate-900 border border-slate-700 text-xs px-3.5 py-2 rounded-xl text-red-400 font-bold transition-all shadow">
+            <i class="fa-solid fa-right-from-bracket ml-1"></i> خروج
+          </button>
+        </div>
+
+        <!-- Job Leads Section -->
+        <div class="bg-slate-800/90 border border-slate-700 p-5 rounded-3xl shadow-xl">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <i class="fa-solid fa-bell text-amber-500 animate-pulse"></i> الطلبات الواردة الجديدة
+            </h3>
+            <button onclick="fetchTechJobs()" class="text-xs text-amber-400 hover:text-amber-300 font-bold">
+              <i class="fa-solid fa-rotate-right"></i> تحديث
+            </button>
+          </div>
+          <div id="lead-list" class="space-y-3">
+            <p class="text-xs text-slate-500 text-center py-6">لا توجد طلبات عمل حالية.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Register Form Container -->
+      <div id="register-section" class="bg-slate-800/90 border border-slate-700 p-6 rounded-3xl shadow-2xl hidden backdrop-blur-md">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-base font-black text-white">انضم إلى صنايعيي (مجاناً 100%)</h2>
+          <button onclick="hideRegisterModal()" class="text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <form onsubmit="handleRegister(event)" class="space-y-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">الاسم الكامل</label>
+            <input type="text" id="reg-name" placeholder="مثال: طارق أحمد" required class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">رقم الهاتف</label>
+            <input type="tel" id="reg-phone" placeholder="0912345678" required class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white font-mono">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">رمز الـ PIN (6 أرقام سرية)</label>
+            <input type="password" id="reg-pin" maxlength="6" placeholder="******" required class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-center tracking-widest focus:outline-none focus:border-amber-500 text-white font-mono">
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">التخصص المهني</label>
+            <select id="reg-trade" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white">
+              <option value="كهربائي">كهربائي</option>
+              <option value="سباك">سباك</option>
+              <option value="مكيفات">صيانة مكيفات</option>
+              <option value="مولدات">ميكانيكي مولدات</option>
+              <option value="نجار">نجار</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">الحي / المنطقة في بورتسودان</label>
+            <input type="text" id="reg-area" placeholder="مثال: الدقاق، السوق الكبير" required class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white">
+          </div>
+          <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-500/20 transition-all mt-2">
+            إتمام التسجيل وانضمام
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Booking Modal -->
+  <div id="booking-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-black text-base text-white" id="modal-tech-title">طلب خدمة فني</h3>
+        <button onclick="closeBookingModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <form onsubmit="submitBooking(event)" class="space-y-3">
+        <input type="hidden" id="book-tech-id">
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">اسمك الكريم</label>
+          <input type="text" id="book-client-name" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">رقم هاتفك للتواصل</label>
+          <input type="tel" id="book-client-phone" placeholder="0912345678" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white font-mono focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">الحي / العنوان بالتفصيل</label>
+          <input type="text" id="book-address" placeholder="مثال: الدقاق بالقرب من الشارع الرئيسي" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">وصف العطل باختصار</label>
+          <textarea id="book-desc" rows="2" placeholder="ما الذي يحتاج إلى صيانة؟" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"></textarea>
+        </div>
+        <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-500/20 transition-all mt-2">
+          إرسال طلب الخدمة الآن
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let allTechs = [];
+    let currentTechSession = null;
+
+    function toggleView() {
+      const custView = document.getElementById('customer-view');
+      const techView = document.getElementById('tech-view');
+      const toggleBtn = document.getElementById('nav-toggle');
+      
+      if(custView.classList.contains('hidden')) {
+        custView.classList.remove('hidden');
+        techView.classList.add('hidden');
+        toggleBtn.innerHTML = '<i class="fa-solid fa-user-gear"></i> بوابة الفنيين';
+      } else {
+        custView.classList.add('hidden');
+        techView.classList.remove('hidden');
+        toggleBtn.innerHTML = '<i class="fa-solid fa-users"></i> استعراض الفنيين';
+      }
+    }
+
+    async function fetchTechnicians() {
+      try {
+        const res = await fetch('/api/technicians');
+        allTechs = await res.json();
+        renderTechs(allTechs);
+      } catch (e) {
+        document.getElementById('tech-list').innerHTML = `<p class="text-center text-xs text-red-400 py-6">تعذر تحميل قائمة الفنيين.</p>`;
+      }
+    }
+
+    function renderTechs(list) {
+      const container = document.getElementById('tech-list');
+      if(list.length === 0) {
+        container.innerHTML = `<p class="text-center text-xs text-slate-500 py-8 bg-slate-800/50 rounded-2xl border border-slate-800">لا يوجد فنيون مسجلون حالياً.</p>`;
+        return;
+      }
+      container.innerHTML = list.map(t => `
+        <div class="bg-slate-800/80 border border-slate-700/80 p-4 rounded-2xl shadow-lg flex justify-between items-center transition-all hover:border-amber-500/50">
+          <div class="space-y-1">
+            <h4 class="font-bold text-sm text-white">${t.name}</h4>
+            <span class="inline-block bg-amber-500/10 text-amber-400 text-[10px] px-2.5 py-0.5 rounded-md font-bold border border-amber-500/20">${t.trade}</span>
+            <p class="text-xs text-slate-400 mt-1 flex items-center gap-1">
+              <i class="fa-solid fa-location-dot text-amber-500"></i> ${t.area}
+            </p>
+          </div>
+          <button onclick="openBookingModal('${t.id}', '${t.name}')" class="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 text-xs px-4 py-2.5 rounded-xl font-black shadow-md shadow-amber-500/20 transition-all">
+            طلب فني
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function filterTrade(trade) {
+      // Highlight active category button
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.className = "category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all";
+      });
+      event.target.className = "category-btn bg-amber-500 text-slate-950 text-xs py-2.5 rounded-xl font-bold shadow-md shadow-amber-500/20 transition-all";
+
+      if(trade === 'All') return renderTechs(allTechs);
+      const filtered = allTechs.filter(t => t.trade.includes(trade));
+      renderTechs(filtered);
+    }
+
+    function showRegisterModal() {
+      document.getElementById('login-section').classList.add('hidden');
+      document.getElementById('register-section').classList.remove('hidden');
+    }
+
+    function hideRegisterModal() {
+      document.getElementById('register-section').classList.add('hidden');
+      document.getElementById('login-section').classList.remove('hidden');
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('reg-name').value,
+        phone: document.getElementById('reg-phone').value,
+        pin: document.getElementById('reg-pin').value,
+        trade: document.getElementById('reg-trade').value,
+        area: document.getElementById('reg-area').value
+      };
+
+      if(payload.pin.length !== 6) {
+        alert('يجب أن يكون رمز الـ PIN مكوناً من 6 أرقام بالضبط');
+        return;
+      }
+
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if(res.ok) {
+        alert('تم التسجيل بنجاح! يمكنك تسجيل الدخول الآن.');
+        hideRegisterModal();
+      } else {
+        alert(data.error);
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const phone = document.getElementById('login-phone').value;
+      const pin = document.getElementById('login-pin').value;
+
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ phone, pin })
+      });
+      const data = await res.json();
+      if(res.ok) {
+        currentTechSession = data.technician;
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.remove('hidden');
+        document.getElementById('dash-name').innerText = currentTechSession.name;
+        document.getElementById('dash-trade').innerText = `${currentTechSession.trade} • ${currentTechSession.area}`;
+        fetchTechJobs();
+      } else {
+        alert(data.error || 'خطأ في رقم الهاتف أو رمز الـ PIN');
+      }
+    }
+
+    function handleLogout() {
+      currentTechSession = null;
+      document.getElementById('dashboard-section').classList.add('hidden');
+      document.getElementById('login-section').classList.remove('hidden');
+      document.getElementById('login-form').reset();
+    }
+
+    function openBookingModal(id, name) {
+      document.getElementById('book-tech-id').value = id;
+      document.getElementById('modal-tech-title').innerText = `طلب خدمة الفني: ${name}`;
+      document.getElementById('booking-modal').classList.remove('hidden
