@@ -50,6 +50,12 @@
           <button onclick="filterTrade('مكيفات', this)" class="category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all cursor-pointer">مكيفات</button>
           <button onclick="filterTrade('مولدات', this)" class="category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all cursor-pointer">مولدات</button>
           <button onclick="filterTrade('نجار', this)" class="category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all cursor-pointer">نجار</button>
+          <button onclick="toggleOtherSearch(this)" class="category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all col-span-3 cursor-pointer">أخرى (بحث مخصص)</button>
+        </div>
+
+        <!-- Custom Search Box for 'Other' -->
+        <div id="custom-search-box" class="hidden mt-3">
+          <input type="text" id="search-input" oninput="handleCustomSearch(this.value)" placeholder="ابحث عن المهنة أو التخصص المطلوب..." class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
         </div>
       </div>
 
@@ -61,6 +67,13 @@
         <div id="tech-list" class="space-y-3">
           <div class="text-center py-10 text-slate-500 text-xs">جاري تحميل قائمة الفنيين...</div>
         </div>
+      </div>
+
+      <!-- WhatsApp Support Button -->
+      <div class="pt-2">
+        <a href="https://wa.me/249999119052" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-2xl text-xs shadow-lg transition-all flex items-center justify-center gap-2">
+          <i class="fa-brands fa-whatsapp text-lg"></i> للاستفسارات والبلاغات اتصل بنا عبر واتساب
+        </a>
       </div>
     </div>
 
@@ -136,7 +149,7 @@
       <!-- Register Form Container -->
       <div id="register-section" class="bg-slate-800/90 border border-slate-700 p-6 rounded-3xl shadow-2xl hidden backdrop-blur-md">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-base font-black text-white">انضم إلى صنايعي (مجاناً 100%)</h2>
+          <h2 class="text-base font-black text-white">انضم إلى صنايعي</h2>
           <button type="button" onclick="hideRegisterModal()" class="text-slate-400 hover:text-white cursor-pointer bg-transparent border-0">
             <i class="fa-solid fa-xmark text-lg"></i>
           </button>
@@ -162,13 +175,31 @@
               <option value="مكيفات">صيانة مكيفات</option>
               <option value="مولدات">ميكانيكي مولدات</option>
               <option value="نجار">نجار</option>
+              <option value="أخرى">أخرى</option>
             </select>
           </div>
           <div>
             <label class="text-xs font-semibold text-slate-300 block mb-1">الحي / المنطقة في السودان</label>
             <input type="text" id="reg-area" placeholder="مثال: بورتسودان، الدقاق" required class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white">
           </div>
-          <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-500/20 transition-all mt-2 cursor-pointer">
+
+          <!-- 10% Commission Notice & Agreement Checkbox -->
+          <div class="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-2xl space-y-2 mt-2">
+            <div class="flex items-start gap-2">
+              <i class="fa-solid fa-circle-exclamation text-amber-400 text-sm mt-0.5"></i>
+              <p class="text-[11px] text-amber-200 leading-relaxed font-medium">
+                تنبيه شروط المنصة: يلتزم الفني بدفع نسبة <strong class="text-white">10%</strong> كعمولة للمنصة بعد إتمام كل عملية صيانة يتم الحصول عليها عبر التطبيق.
+              </p>
+            </div>
+            <div class="flex items-center gap-2 pt-1 border-t border-amber-500/20">
+              <input type="checkbox" id="reg-agree" required class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
+              <label for="reg-agree" class="text-xs text-slate-200 cursor-pointer font-bold">
+                أوافق على دفع نسبة الـ 10% كعمولة للمنصة بعد إتمام العمل
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-500/20 transition-all mt-3 cursor-pointer">
             إتمام التسجيل وانضمام
           </button>
         </form>
@@ -215,7 +246,8 @@
     let mockTechs = [
       { id: '1', name: 'طارق أحمد', phone: '0912000001', pin: '123456', trade: 'كهربائي', area: 'بورتسودان - الدقاق' },
       { id: '2', name: 'عثمان علي', phone: '0912000002', pin: '123456', trade: 'سباك', area: 'بورتسودان - السوق الكبير' },
-      { id: '3', name: 'مختار حسن', phone: '0912000003', pin: '123456', trade: 'مكيفات', area: 'بورتسودان - المطار' }
+      { id: '3', name: 'مختار حسن', phone: '0912000003', pin: '123456', trade: 'مكيفات', area: 'بورتسودان - المطار' },
+      { id: '4', name: 'عبدالله النجار', phone: '0912000004', pin: '123456', trade: 'نجار', area: 'بورتسودان - الثورة' }
     ];
 
     let mockJobs = [];
@@ -258,7 +290,7 @@
       const container = document.getElementById('tech-list');
       if(!container) return;
       if(list.length === 0) {
-        container.innerHTML = `<p class="text-center text-xs text-slate-500 py-8 bg-slate-800/50 rounded-2xl border border-slate-800">لا يوجد فنيون مسجلون حالياً.</p>`;
+        container.innerHTML = `<p class="text-center text-xs text-slate-500 py-8 bg-slate-800/50 rounded-2xl border border-slate-800">لا يوجد فنيون مسجلون مطابقون للبحث.</p>`;
         return;
       }
       container.innerHTML = list.map(t => `
@@ -278,15 +310,43 @@
     }
 
     function filterTrade(trade, btnElement) {
+      document.getElementById('custom-search-box').classList.add('hidden');
       document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.className = "category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all";
+        btn.className = "category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all cursor-pointer";
       });
       if(btnElement) {
-        btnElement.className = "category-btn bg-amber-500 text-slate-950 text-xs py-2.5 rounded-xl font-bold shadow-md shadow-amber-500/20 transition-all";
+        btnElement.className = "category-btn bg-amber-500 text-slate-950 text-xs py-2.5 rounded-xl font-bold shadow-md shadow-amber-500/20 transition-all cursor-pointer";
       }
 
       if(trade === 'All') return renderTechs(allTechs);
-      const filtered = allTechs.filter(t => t.trade && t.trade.includes(trade));
+      const filtered = allTechs.filter(t => t.trade && t.trade.trim() === trade.trim());
+      renderTechs(filtered);
+    }
+
+    function toggleOtherSearch(btnElement) {
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.className = "category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all cursor-pointer";
+      });
+      if(btnElement) {
+        btnElement.className = "category-btn bg-amber-500 text-slate-950 text-xs py-2.5 rounded-xl font-bold shadow-md shadow-amber-500/20 transition-all col-span-3 cursor-pointer";
+      }
+      const searchBox = document.getElementById('custom-search-box');
+      searchBox.classList.remove('hidden');
+      document.getElementById('search-input').focus();
+      handleCustomSearch(document.getElementById('search-input').value);
+    }
+
+    function handleCustomSearch(query) {
+      const q = query.toLowerCase().trim();
+      if (!q) {
+        renderTechs(allTechs);
+        return;
+      }
+      const filtered = allTechs.filter(t => 
+        (t.name && t.name.toLowerCase().includes(q)) ||
+        (t.trade && t.trade.toLowerCase().includes(q)) ||
+        (t.area && t.area.toLowerCase().includes(q))
+      );
       renderTechs(filtered);
     }
 
@@ -306,6 +366,13 @@
 
     async function handleRegister(e) {
       e.preventDefault();
+      
+      const agreeCheckbox = document.getElementById('reg-agree');
+      if(!agreeCheckbox || !agreeCheckbox.checked) {
+        alert('يجب الموافقة على شروط نسبة العمولة (10%) لإتمام التسجيل');
+        return;
+      }
+
       const payload = {
         name: document.getElementById('reg-name').value,
         phone: document.getElementById('reg-phone').value,
@@ -348,4 +415,101 @@
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ phone, pin })
         });
-        const da
+        const data = await res.json();
+        if(res.ok) matchedTech = data.technician;
+      } catch (err) {
+        matchedTech = allTechs.find(t => t.phone === phone && t.pin === pin);
+      }
+
+      if(matchedTech) {
+        currentTechSession = matchedTech;
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.remove('hidden');
+        document.getElementById('dash-name').innerText = currentTechSession.name;
+        document.getElementById('dash-trade').innerText = `${currentTechSession.trade} • ${currentTechSession.area}`;
+        fetchTechJobs();
+      } else {
+        alert('رقم الهاتف أو رمز الـ PIN غير صحيح');
+      }
+    }
+
+    function handleLogout() {
+      currentTechSession = null;
+      document.getElementById('dashboard-section').classList.add('hidden');
+      document.getElementById('login-section').classList.remove('hidden');
+      const loginForm = document.getElementById('login-form');
+      if(loginForm) loginForm.reset();
+    }
+
+    function openBookingModal(id, name) {
+      document.getElementById('book-tech-id').value = id;
+      document.getElementById('modal-tech-title').innerText = `طلب خدمة الفني: ${name}`;
+      document.getElementById('booking-modal').classList.remove('hidden');
+    }
+
+    function closeBookingModal() {
+      document.getElementById('booking-modal').classList.add('hidden');
+    }
+
+    async function submitBooking(e) {
+      e.preventDefault();
+      const payload = {
+        techId: document.getElementById('book-tech-id').value,
+        clientName: document.getElementById('book-client-name').value,
+        clientPhone: document.getElementById('book-client-phone').value,
+        address: document.getElementById('book-address').value,
+        description: document.getElementById('book-desc').value
+      };
+
+      try {
+        await fetch('/api/jobs', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        mockJobs.push({ id: Date.now().toString(), ...payload });
+      }
+
+      alert('تم إرسال طلبك بنجاح! سيتواصل معك الفني قريباً.');
+      closeBookingModal();
+      e.target.reset();
+    }
+
+    async function fetchTechJobs() {
+      if(!currentTechSession) return;
+      let jobs = [];
+      try {
+        const res = await fetch(`/api/jobs?techId=${currentTechSession.id}`);
+        jobs = await res.json();
+      } catch (err) {
+        jobs = mockJobs.filter(j => j.techId === currentTechSession.id);
+      }
+
+      const container = document.getElementById('lead-list');
+      if(!container) return;
+      if(jobs.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">لا توجد طلبات عمل جديدة حالياً.</p>`;
+        return;
+      }
+      container.innerHTML = jobs.map(j => `
+        <div class="bg-slate-900 border border-slate-700/80 p-4 rounded-2xl text-xs space-y-2 shadow-md">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-white text-sm"><i class="fa-solid fa-user text-amber-500 ml-1"></i> ${j.clientName}</span>
+            <span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded text-[10px] font-bold">طلب جديد</span>
+          </div>
+          <p class="text-slate-300"><i class="fa-solid fa-location-dot text-amber-500 ml-1"></i> ${j.address}</p>
+          <p class="text-slate-400 italic bg-slate-800/50 p-2.5 rounded-xl border border-slate-800">"${j.description}"</p>
+          <div class="pt-2 flex gap-2">
+            <a href="tel:${j.clientPhone}" class="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white px-4 py-2.5 rounded-xl font-bold text-center flex-1 shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-phone"></i> اتصال بالعميل (${j.clientPhone})
+            </a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    fetchTechnicians();
+  </script>
+</body>
+</html>
