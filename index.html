@@ -168,6 +168,10 @@
             <input type="password" id="reg-pin" maxlength="6" placeholder="******" required class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-center tracking-widest focus:outline-none focus:border-amber-500 text-white font-mono">
           </div>
           <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">تأكيد رمز الـ PIN</label>
+            <input type="password" id="reg-confirm-pin" maxlength="6" placeholder="******" required class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-center tracking-widest focus:outline-none focus:border-amber-500 text-white font-mono">
+          </div>
+          <div>
             <label class="text-xs font-semibold text-slate-300 block mb-1">التخصص المهني</label>
             <select id="reg-trade" onchange="handleTradeChange(this.value)" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white">
               <option value="كهربائي">كهربائي</option>
@@ -425,6 +429,14 @@
         return;
       }
 
+      const pin = document.getElementById('reg-pin').value;
+      const confirmPin = document.getElementById('reg-confirm-pin').value;
+
+      if (pin !== confirmPin) {
+        alert('رمز الـ PIN غير متطابق. يرجى التحقق من إعادة كتابة الرمز.');
+        return;
+      }
+
       let tradeVal = document.getElementById('reg-trade').value;
       if (tradeVal === 'أخرى') {
         const customTradeVal = document.getElementById('reg-custom-trade').value.trim();
@@ -443,7 +455,7 @@
       const payload = {
         name: document.getElementById('reg-name').value,
         phone: document.getElementById('reg-phone').value,
-        pin: document.getElementById('reg-pin').value,
+        pin: pin,
         trade: tradeVal,
         area: document.getElementById('reg-area').value
       };
