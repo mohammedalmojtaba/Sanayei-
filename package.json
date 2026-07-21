@@ -1,6 +1,8 @@
 {
   "name": "sanayei-app",
   "version": "1.0.0",
+  "description": "Sanayei Sudan Technicians Directory",
+  "main": "index.html",
   "dependencies": {
     "firebase-admin": "^12.0.0"
   }
