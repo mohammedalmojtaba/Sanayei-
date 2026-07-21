@@ -309,8 +309,8 @@
         status: 'accepted', 
         estimatedCharges: '15000',
         messages: [
-          { sender: 'tech', text: 'أهلاً بك، تم استلام الطلب والتكلفة التقديرية 15000 ج.س', time: '10:30 ص' },
-          { sender: 'client', text: 'مرحباً، هل يمكن الحضور اليوم عصراً؟', time: '10:32 ص' }
+          { sender: 'tech', text: 'أهلاً بك، تم استلام الطلب والتكلفة التقديرية 15000 ج.س', time: '10:30 ص', isExample: true },
+          { sender: 'client', text: 'مرحباً، هل يمكن الحضور اليوم عصراً؟', time: '10:32 ص', isExample: true }
         ]
       }
     ];
@@ -610,12 +610,19 @@
         let isQuoted = j.status === 'quoted' || j.status === 'accepted';
         let msgs = j.messages || [];
         
+        let statusBadgeText = '';
+        if(j.status === 'pending') statusBadgeText = 'بانتظار التسعير من قبلك';
+        else if(j.status === 'quoted') statusBadgeText = 'بانتظار موافقة العميل';
+        else if(j.status === 'accepted') statusBadgeText = 'تم القبول (تم تبادل الأرقام)';
+        else if(j.status === 'completed') statusBadgeText = 'مكتمل';
+        else statusBadgeText = 'مرفوض';
+
         return `
           <div class="bg-slate-900 border border-slate-700/80 p-4 rounded-2xl text-xs space-y-3 shadow-md">
             <div class="flex justify-between items-center">
               <span class="font-bold text-white text-sm"><i class="fa-solid fa-user text-amber-500 ml-1"></i> ${j.clientName}</span>
               <span class="bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded text-[10px] font-bold">
-                ${j.status === 'pending' ? 'بانتظار عرض السعر' : j.status === 'quoted' ? 'بانتظار موافقة العميل' : j.status === 'accepted' ? 'تم القبول (جاري العمل)' : j.status === 'completed' ? 'مكتمل' : 'مرفوض'}
+                ${statusBadgeText}
               </span>
             </div>
             <p class="text-slate-300"><i class="fa-solid fa-location-dot text-amber-500 ml-1"></i> ${j.address}</p>
@@ -656,8 +663,8 @@
                   ${msgs.length === 0 ? '<p class="text-slate-500 text-center py-2">لا توجد رسائل بعد. ابدأ المحادثة الآن.</p>' : 
                     msgs.map(m => `
                       <div class="flex flex-col ${m.sender === 'tech' ? 'items-end' : 'items-start'}">
-                        <div class="max-w-[85%] p-2 rounded-xl ${m.sender === 'tech' ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30' : 'bg-slate-800 text-slate-200 border border-slate-700'}">
-                          ${m.text}
+                        <div class="max-w-[85%] p-2 rounded-xl ${m.isExample ? 'opacity-40 italic text-slate-400 border border-slate-800 bg-slate-900/40' : (m.sender === 'tech' ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30' : 'bg-slate-800 text-slate-200 border border-slate-700')}">
+                          ${m.text} ${m.isExample ? '<span class="text-[8px] block text-slate-500">(مثال توضيحي)</span>' : ''}
                         </div>
                         <span class="text-[9px] text-slate-500 mt-0.5 px-1">${m.time}</span>
                       </div>
@@ -726,7 +733,6 @@
         });
         input.value = '';
         
-        // Refresh UI depending on who is viewing
         if(currentTechSession) {
           fetchTechJobs();
         } else {
@@ -774,20 +780,36 @@
       }
 
       container.innerHTML = clientJobs.map(j => {
-        let tech = allTechs.find(t => t.id === j.techId) || { name: 'فني معتمد', trade: 'صيانة عامة' };
+        let tech = allTechs.find(t => t.id === j.techId) || { name: 'فني معتمد', trade: 'صيانة عامة', phone: '0912345678' };
         let hasQuote = j.estimatedCharges && j.estimatedCharges !== '';
+        let isAccepted = j.status === 'accepted';
         let msgs = j.messages || [];
         
+        let clientStatusText = '';
+        if(!hasQuote) clientStatusText = 'بانتظار تسعير الفني';
+        else if(j.status === 'quoted') clientStatusText = 'عرض سعر جديد (بانتظار موافقتك)';
+        else if(j.status === 'accepted') clientStatusText = 'تم القبول (تم تبادل الأرقام)';
+        else if(j.status === 'completed') clientStatusText = 'مكتمل';
+        else clientStatusText = 'مرفوض';
+
         return `
           <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl text-xs space-y-3">
             <div class="flex justify-between items-center">
               <span class="font-bold text-white text-sm">الفني: ${tech.name} (${tech.trade})</span>
               <span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded text-[10px] font-bold">
-                ${j.status === 'pending' ? 'بانتظار تسعير الفني' : j.status === 'quoted' ? 'عرض سعر جديد' : j.status === 'accepted' ? 'تم القبول ✅' : j.status === 'completed' ? 'مكتمل' : 'مرفوض'}
+                ${clientStatusText}
               </span>
             </div>
             <p class="text-slate-300"><strong>العطل:</strong> ${j.description}</p>
             <p class="text-slate-400"><strong>العنوان:</strong> ${j.address}</p>
+
+            <!-- Tech Phone Number Exchange Section -->
+            <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
+              <span class="text-slate-400">رقم هاتف الفني:</span>
+              <span class="font-mono font-bold ${isAccepted ? 'text-emerald-400' : 'text-amber-400/70'}">
+                ${isAccepted ? tech.phone : '🔒 يُكشف بعد قبول عرض السعر'}
+              </span>
+            </div>
 
             ${hasQuote ? `
               <div class="bg-slate-900/80 p-3 rounded-xl border border-amber-500/30 space-y-2">
@@ -800,12 +822,17 @@
                     <button onclick="updateClientJobStatus('${j.id}', 'accepted')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg transition-all cursor-pointer">قبول السعر</button>
                     <button onclick="updateClientJobStatus('${j.id}', 'rejected')" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-lg transition-all cursor-pointer">رفض</button>
                   </div>
-                ` : j.status === 'accepted' ? `
-                  <p class="text-emerald-400 text-center font-bold pt-1">تم قبول السعر! يمكنك مراسلة الفني أدناه.</p>
+                ` : isAccepted ? `
+                  <p class="text-emerald-400 text-center font-bold pt-1">تم قبول السعر وتبادل الأرقام بنجاح!</p>
+                  <a href="tel:${tech.phone}" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold text-center shadow-md transition-all flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-phone"></i> اتصال بالفني (${tech.phone})
+                  </a>
                 ` : ''}
               </div>
             ` : `
-              <p class="text-slate-400 italic">لم يقم الفني بتحديد التكلفة بعد.</p>
+              <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-amber-400/90 text-center font-bold">
+                <i class="fa-solid fa-hourglass-half ml-1"></i> بانتظار تسعير الفني
+              </div>
             `}
 
             <!-- IN-APP CHAT FOR CLIENT -->
@@ -818,8 +845,8 @@
                   ${msgs.length === 0 ? '<p class="text-slate-500 text-center py-2">لا توجد رسائل بعد.</p>' : 
                     msgs.map(m => `
                       <div class="flex flex-col ${m.sender === 'client' ? 'items-end' : 'items-start'}">
-                        <div class="max-w-[85%] p-2 rounded-xl ${m.sender === 'client' ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30' : 'bg-slate-800 text-slate-200 border border-slate-700'}">
-                          ${m.text}
+                        <div class="max-w-[85%] p-2 rounded-xl ${m.isExample ? 'opacity-40 italic text-slate-400 border border-slate-800 bg-slate-950/40' : (m.sender === 'client' ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30' : 'bg-slate-800 text-slate-200 border border-slate-700')}">
+                          ${m.text} ${m.isExample ? '<span class="text-[8px] block text-slate-500">(مثال توضيحي)</span>' : ''}
                         </div>
                         <span class="text-[9px] text-slate-500 mt-0.5 px-1">${m.time}</span>
                       </div>
@@ -867,7 +894,7 @@
             text: 'تم قبول عرض السعر بنجاح.',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           });
-          alert('تم قبول السعر بنجاح! تم كشف رقمك للفني وتفعيل المحادثة.');
+          alert('تم قبول السعر بنجاح! تم تبادل الأرقام وتفعيل الاتصال والمحادثة المباشرة.');
         } else {
           alert('تم رفض السعر.');
         }
