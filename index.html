@@ -290,33 +290,56 @@
     </div>
   </div>
 
-  <script>
-    let mockTechs = [
-      { id: '1', name: 'طارق أحمد', phone: '0912000001', pin: '123456', trade: 'كهربائي', area: 'بورتسودان - الدقاق' },
-      { id: '2', name: 'عثمان علي', phone: '0912000002', pin: '123456', trade: 'سباك', area: 'بورتسودان - السوق الكبير' },
-      { id: '3', name: 'مختار حسن', phone: '0912000003', pin: '123456', trade: 'مكيفات', area: 'بورتسودان - المطار' },
-      { id: '4', name: 'عبدالله النجار', phone: '0912000004', pin: '123456', trade: 'نجار', area: 'بورتسودان - الثورة' }
-    ];
+  <!-- FIREBASE APPLICATION SCRIPT (v10 MODULE) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      getDocs, 
+      getDoc, 
+      doc, 
+      updateDoc, 
+      query, 
+      where 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    let mockJobs = [
-      { 
-        id: '101', 
-        techId: '1', 
-        clientName: 'محمد أحمد', 
-        clientPhone: '0999119052', 
-        address: 'بورتسودان - الثورة', 
-        description: 'إصلاح قاطع كهربائي رئيسي', 
-        status: 'accepted', 
-        estimatedCharges: '15000',
-        messages: [
-          { sender: 'tech', text: 'أهلاً بك، تم استلام الطلب والتكلفة التقديرية 15000 ج.س', time: '10:30 ص', isExample: true },
-          { sender: 'client', text: 'مرحباً، هل يمكن الحضور اليوم عصراً؟', time: '10:32 ص', isExample: true }
-        ]
-      }
-    ];
+    // 🌐 FIREBASE WEB CONFIGURATION
+    const firebaseConfig = {
+      apiKey: "AIzaSyDAKQDee6W-ojBZR0MjTEGpiQ0I4KsxzcA",
+      authDomain: "sanayei-d359e.firebaseapp.com",
+      projectId: "sanayei-d359e",
+      storageBucket: "sanayei-d359e.firebasestorage.app",
+      messagingSenderId: "246765308017",
+      appId: "1:246765308017:web:ec86cee27a8959b9af33d0"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     let allTechs = [];
     let currentTechSession = null;
 
+    // Timezone Utility for Sudan (GMT+2)
+    function getSudanISOString() {
+      const now = new Date();
+      const sudanOffsetMs = 2 * 60 * 60 * 1000;
+      const sudanDate = new Date(now.getTime() + sudanOffsetMs);
+      return sudanDate.toISOString();
+    }
+
+    function getSudanFormattedTime() {
+      return new Date().toLocaleString("ar-SD", {
+        timeZone: "Africa/Khartoum",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+      });
+    }
+
+    // --- NAVIGATION & UI HANDLERS ---
     function toggleView() {
       const custView = document.getElementById('customer-view');
       const techView = document.getElementById('tech-view');
@@ -337,16 +360,16 @@
 
     async function fetchTechnicians() {
       try {
-        const res = await fetch('/api/technicians');
-        if (!res.ok) throw new Error('API fetch failed');
-        allTechs = await res.json();
-        if(!Array.isArray(allTechs) || allTechs.length === 0) {
-          allTechs = mockTechs;
-        }
+        const querySnapshot = await getDocs(collection(db, "technicians"));
+        allTechs = [];
+        querySnapshot.forEach((doc) => {
+          allTechs.push({ id: doc.id, ...doc.data() });
+        });
+        renderTechs(allTechs);
       } catch (e) {
-        allTechs = mockTechs;
+        console.error("Error fetching technicians:", e);
+        document.getElementById('tech-list').innerHTML = `<p class="text-center text-xs text-red-400 py-6">حدث خطأ أثناء تحميل الفنيين.</p>`;
       }
-      renderTechs(allTechs);
     }
 
     function renderTechs(list) {
@@ -399,8 +422,8 @@
       handleCustomSearch(document.getElementById('search-input').value);
     }
 
-    function handleCustomSearch(query) {
-      const q = query.toLowerCase().trim();
+    function handleCustomSearch(queryStr) {
+      const q = queryStr.toLowerCase().trim();
       if (!q) {
         renderTechs(allTechs);
         return;
@@ -434,19 +457,16 @@
     }
 
     function showRegisterModal() {
-      const loginSec = document.getElementById('login-section');
-      const regSec = document.getElementById('register-section');
-      if(loginSec) loginSec.classList.add('hidden');
-      if(regSec) regSec.classList.remove('hidden');
+      document.getElementById('login-section').classList.add('hidden');
+      document.getElementById('register-section').classList.remove('hidden');
     }
 
     function hideRegisterModal() {
-      const regSec = document.getElementById('register-section');
-      const loginSec = document.getElementById('login-section');
-      if(regSec) regSec.classList.add('hidden');
-      if(loginSec) loginSec.classList.remove('hidden');
+      document.getElementById('register-section').classList.add('hidden');
+      document.getElementById('login-section').classList.remove('hidden');
     }
 
+    // --- TECHNICIAN REGISTRATION & LOGIN (FIREBASE) ---
     async function handleRegister(e) {
       e.preventDefault();
       
@@ -479,12 +499,14 @@
         tradeVal = customTradeVal;
       }
 
+      const phone = document.getElementById('reg-phone').value.trim();
       const payload = {
-        name: document.getElementById('reg-name').value,
-        phone: document.getElementById('reg-phone').value,
+        name: document.getElementById('reg-name').value.trim(),
+        phone: phone,
         pin: pin,
         trade: tradeVal,
-        area: document.getElementById('reg-area').value
+        area: document.getElementById('reg-area').value.trim(),
+        createdAt: getSudanISOString()
       };
 
       if(payload.pin.length !== 6) {
@@ -493,51 +515,47 @@
       }
 
       try {
-        const res = await fetch('/api/register', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if(!res.ok) throw new Error(data.error || 'Registration failed');
+        // Save technician to Firestore
+        await addDoc(collection(db, "technicians"), payload);
+        alert('تم التسجيل بنجاح! يمكنك تسجيل الدخول الآن.');
+        hideRegisterModal();
+        e.target.reset();
+        document.getElementById('custom-trade-container').classList.add('hidden');
+        fetchTechnicians();
       } catch (err) {
-        mockTechs.push({ id: Date.now().toString(), ...payload });
+        console.error("Registration error:", err);
+        alert("حدث خطأ أثناء التسجيل. يرجى إعادة المحاولة.");
       }
-
-      alert('تم التسجيل بنجاح! يمكنك تسجيل الدخول الآن.');
-      hideRegisterModal();
-      e.target.reset();
-      document.getElementById('custom-trade-container').classList.add('hidden');
-      fetchTechnicians();
     }
 
     async function handleLogin(e) {
       e.preventDefault();
-      const phone = document.getElementById('login-phone').value;
-      const pin = document.getElementById('login-pin').value;
+      const phone = document.getElementById('login-phone').value.trim();
+      const pin = document.getElementById('login-pin').value.trim();
 
-      let matchedTech = null;
       try {
-        const res = await fetch('/api/login', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ phone, pin })
-        });
-        const data = await res.json();
-        if(res.ok) matchedTech = data.technician;
-      } catch (err) {
-        matchedTech = allTechs.find(t => t.phone === phone && t.pin === pin);
-      }
+        const q = query(
+          collection(db, "technicians"), 
+          where("phone", "==", phone), 
+          where("pin", "==", pin)
+        );
+        const querySnapshot = await getDocs(q);
 
-      if(matchedTech) {
-        currentTechSession = matchedTech;
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('dashboard-section').classList.remove('hidden');
-        document.getElementById('dash-name').innerText = currentTechSession.name;
-        document.getElementById('dash-trade').innerText = `${currentTechSession.trade} • ${currentTechSession.area}`;
-        fetchTechJobs();
-      } else {
-        alert('رقم الهاتف أو رمز الـ PIN غير صحيح');
+        if (!querySnapshot.empty) {
+          const docSnap = querySnapshot.docs[0];
+          currentTechSession = { id: docSnap.id, ...docSnap.data() };
+          
+          document.getElementById('login-section').classList.add('hidden');
+          document.getElementById('dashboard-section').classList.remove('hidden');
+          document.getElementById('dash-name').innerText = currentTechSession.name;
+          document.getElementById('dash-trade').innerText = `${currentTechSession.trade} • ${currentTechSession.area}`;
+          fetchTechJobs();
+        } else {
+          alert('رقم الهاتف أو رمز الـ PIN غير صحيح');
+        }
+      } catch (err) {
+        console.error("Login error:", err);
+        alert("حدث خطأ أثناء تسجيل الدخول.");
       }
     }
 
@@ -545,10 +563,10 @@
       currentTechSession = null;
       document.getElementById('dashboard-section').classList.add('hidden');
       document.getElementById('login-section').classList.remove('hidden');
-      const loginForm = document.getElementById('login-form');
-      if(loginForm) loginForm.reset();
+      document.getElementById('login-form').reset();
     }
 
+    // --- SERVICE BOOKING & JOBS (FIREBASE) ---
     function openBookingModal(id, name) {
       document.getElementById('book-tech-id').value = id;
       document.getElementById('modal-tech-title').innerText = `طلب خدمة الفني: ${name}`;
@@ -562,186 +580,194 @@
     async function submitBooking(e) {
       e.preventDefault();
       const payload = {
-        id: Date.now().toString(),
         techId: document.getElementById('book-tech-id').value,
-        clientName: document.getElementById('book-client-name').value,
-        clientPhone: document.getElementById('book-client-phone').value,
-        address: document.getElementById('book-address').value,
-        description: document.getElementById('book-desc').value,
-        status: 'pending',
+        clientName: document.getElementById('book-client-name').value.trim(),
+        clientPhone: document.getElementById('book-client-phone').value.trim(),
+        address: document.getElementById('book-address').value.trim(),
+        description: document.getElementById('book-desc').value.trim(),
+        status: 'pending', // Starts as pending (NOT rejected)
         estimatedCharges: '',
-        messages: []
+        messages: [],
+        createdAt: getSudanISOString()
       };
 
       try {
-        await fetch('/api/jobs', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(payload)
-        });
+        await addDoc(collection(db, "jobs"), payload);
+        alert('تم إرسال طلبك بنجاح! يمكنك متابعة حالة الطلب وعرض التكلفة والمحادثة من زر "طلباتي" بالأعلى.');
+        closeBookingModal();
+        e.target.reset();
       } catch (err) {
-        mockJobs.push(payload);
+        console.error("Booking error:", err);
+        alert("حدث خطأ أثناء إرسال الطلب.");
       }
-
-      alert('تم إرسال طلبك بنجاح! يمكنك متابعة حالة الطلب وعرض التكلفة والمحادثة من زر "طلباتي" بالأعلى.');
-      closeBookingModal();
-      e.target.reset();
     }
 
     async function fetchTechJobs() {
       if(!currentTechSession) return;
-      let jobs = [];
-      try {
-        const res = await fetch(`/api/jobs?techId=${currentTechSession.id}`);
-        jobs = await res.json();
-      } catch (err) {
-        jobs = mockJobs.filter(j => j.techId === currentTechSession.id);
-      }
-
       const container = document.getElementById('lead-list');
       if(!container) return;
-      if(jobs.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">لا توجد طلبات عمل جديدة حالياً.</p>`;
-        return;
-      }
-      
-      container.innerHTML = jobs.map(j => {
-        let isAccepted = j.status === 'accepted';
-        let isQuoted = j.status === 'quoted' || j.status === 'accepted';
-        let msgs = j.messages || [];
-        
-        let statusBadgeText = '';
-        if(j.status === 'pending') statusBadgeText = 'بانتظار التسعير من قبلك';
-        else if(j.status === 'quoted') statusBadgeText = 'بانتظار موافقة العميل';
-        else if(j.status === 'accepted') statusBadgeText = 'تم القبول (تم تبادل الأرقام)';
-        else if(j.status === 'completed') statusBadgeText = 'مكتمل';
-        else statusBadgeText = 'مرفوض';
 
-        return `
-          <div class="bg-slate-900 border border-slate-700/80 p-4 rounded-2xl text-xs space-y-3 shadow-md">
-            <div class="flex justify-between items-center">
-              <span class="font-bold text-white text-sm"><i class="fa-solid fa-user text-amber-500 ml-1"></i> ${j.clientName}</span>
-              <span class="bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded text-[10px] font-bold">
-                ${statusBadgeText}
-              </span>
-            </div>
-            <p class="text-slate-300"><i class="fa-solid fa-location-dot text-amber-500 ml-1"></i> ${j.address}</p>
-            <p class="text-slate-400 italic bg-slate-800/50 p-2.5 rounded-xl border border-slate-800">"${j.description}"</p>
-            
-            <!-- Phone Number (Hidden until accepted) -->
-            <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
-              <span class="text-slate-400">رقم الهاتف:</span>
-              <span class="font-mono font-bold ${isAccepted ? 'text-emerald-400' : 'text-amber-400/70'}">
-                ${isAccepted ? j.clientPhone : '🔒 يُكشف بعد موافقة العميل'}
-              </span>
-            </div>
+      try {
+        const q = query(collection(db, "jobs"), where("techId", "==", currentTechSession.id));
+        const querySnapshot = await getDocs(q);
+        const jobs = [];
+        querySnapshot.forEach((doc) => jobs.push({ id: doc.id, ...doc.data() }));
 
-            <!-- Quote Input (Shown if pending) -->
-            ${j.status === 'pending' ? `
-              <div class="space-y-2 pt-2 border-t border-slate-800">
-                <label class="text-slate-300 font-semibold block">التكلفة التقديرية (جنية):</label>
-                <div class="flex gap-2">
-                  <input type="text" id="quote-${j.id}" placeholder="مثال: 15000" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-mono focus:outline-none focus:border-amber-500">
-                  <button onclick="submitQuote('${j.id}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-2.5 rounded-xl transition-all cursor-pointer whitespace-nowrap">
-                    إرسال السعر
-                  </button>
-                </div>
+        if(jobs.length === 0) {
+          container.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">لا توجد طلبات عمل جديدة حالياً.</p>`;
+          return;
+        }
+
+        container.innerHTML = jobs.map(j => {
+          let isAccepted = j.status === 'accepted';
+          let isQuoted = j.status === 'quoted' || j.status === 'accepted';
+          let msgs = j.messages || [];
+          
+          let statusBadgeText = '';
+          if(j.status === 'pending') statusBadgeText = 'بانتظار التسعير من قبلك';
+          else if(j.status === 'quoted') statusBadgeText = 'بانتظار موافقة العميل';
+          else if(j.status === 'accepted') statusBadgeText = 'تم القبول (تم تبادل الأرقام)';
+          else if(j.status === 'completed') statusBadgeText = 'مكتمل';
+          else statusBadgeText = 'مرفوض';
+
+          return `
+            <div class="bg-slate-900 border border-slate-700/80 p-4 rounded-2xl text-xs space-y-3 shadow-md">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-white text-sm"><i class="fa-solid fa-user text-amber-500 ml-1"></i> ${j.clientName}</span>
+                <span class="bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded text-[10px] font-bold">
+                  ${statusBadgeText}
+                </span>
               </div>
-            ` : `
-              <div class="text-[11px] text-slate-400 bg-slate-800/40 p-2 rounded-xl">
-                التكلفة المقدرة: <strong class="text-amber-400 font-mono">${j.estimatedCharges || 'غير محدد'} ج.س</strong>
+              <p class="text-slate-300"><i class="fa-solid fa-location-dot text-amber-500 ml-1"></i> ${j.address}</p>
+              <p class="text-slate-400 italic bg-slate-800/50 p-2.5 rounded-xl border border-slate-800">"${j.description}"</p>
+              
+              <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
+                <span class="text-slate-400">رقم الهاتف:</span>
+                <span class="font-mono font-bold ${isAccepted ? 'text-emerald-400' : 'text-amber-400/70'}">
+                  ${isAccepted ? j.clientPhone : '🔒 يُكشف بعد موافقة العميل'}
+                </span>
               </div>
-            `}
 
-            <!-- IN-APP CHAT BOX (Active after quote or acceptance) -->
-            ${isQuoted || isAccepted ? `
-              <div class="border border-slate-800 rounded-xl bg-slate-950 p-3 space-y-2">
-                <div class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 border-b border-slate-800 pb-1.5">
-                  <i class="fa-solid fa-comments"></i> المحادثة الفورية داخل المنصة
+              ${j.status === 'pending' ? `
+                <div class="space-y-2 pt-2 border-t border-slate-800">
+                  <label class="text-slate-300 font-semibold block">التكلفة التقديرية (جنية سوداني):</label>
+                  <div class="flex gap-2">
+                    <input type="number" id="quote-${j.id}" placeholder="أدخل التكلفة المقترحة" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-mono focus:outline-none focus:border-amber-500">
+                    <button onclick="submitQuote('${j.id}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-2.5 rounded-xl transition-all cursor-pointer whitespace-nowrap">
+                      إرسال السعر
+                    </button>
+                  </div>
                 </div>
-                <div id="chat-box-${j.id}" class="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-[11px]">
-                  ${msgs.length === 0 ? '<p class="text-slate-500 text-center py-2">لا توجد رسائل بعد. ابدأ المحادثة الآن.</p>' : 
-                    msgs.map(m => `
-                      <div class="flex flex-col ${m.sender === 'tech' ? 'items-end' : 'items-start'}">
-                        <div class="max-w-[85%] p-2 rounded-xl ${m.isExample ? 'opacity-40 italic text-slate-400 border border-slate-800 bg-slate-900/40' : (m.sender === 'tech' ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30' : 'bg-slate-800 text-slate-200 border border-slate-700')}">
-                          ${m.text} ${m.isExample ? '<span class="text-[8px] block text-slate-500">(مثال توضيحي)</span>' : ''}
+              ` : `
+                <div class="text-[11px] text-slate-400 bg-slate-800/40 p-2 rounded-xl">
+                  التكلفة المقدرة: <strong class="text-amber-400 font-mono">${j.estimatedCharges || 'غير محدد'} ج.س</strong>
+                </div>
+              `}
+
+              ${isQuoted || isAccepted ? `
+                <div class="border border-slate-800 rounded-xl bg-slate-950 p-3 space-y-2">
+                  <div class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 border-b border-slate-800 pb-1.5">
+                    <i class="fa-solid fa-comments"></i> المحادثة الفورية داخل المنصة
+                  </div>
+                  <div id="chat-box-${j.id}" class="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-[11px]">
+                    ${msgs.length === 0 ? '<p class="text-slate-500 text-center py-2">لا توجد رسائل بعد.</p>' : 
+                      msgs.map(m => `
+                        <div class="flex flex-col ${m.sender === 'tech' ? 'items-end' : 'items-start'}">
+                          <div class="max-w-[85%] p-2 rounded-xl ${m.sender === 'tech' ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30' : 'bg-slate-800 text-slate-200 border border-slate-700'}">
+                            ${m.text}
+                          </div>
+                          <span class="text-[9px] text-slate-500 mt-0.5 px-1">${m.time}</span>
                         </div>
-                        <span class="text-[9px] text-slate-500 mt-0.5 px-1">${m.time}</span>
-                      </div>
-                    `).join('')}
+                      `).join('')}
+                  </div>
+                  <div class="flex gap-1.5 pt-1">
+                    <input type="text" id="msg-input-${j.id}" placeholder="اكتب رسالتك..." class="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500" onkeydown="if(event.key==='Enter') sendInAppMessage('${j.id}', 'tech')">
+                    <button onclick="sendInAppMessage('${j.id}', 'tech')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-2 rounded-lg font-bold text-xs cursor-pointer">
+                      <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                  </div>
                 </div>
-                <div class="flex gap-1.5 pt-1">
-                  <input type="text" id="msg-input-${j.id}" placeholder="اكتب رسالتك..." class="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500" onkeydown="if(event.key==='Enter') sendInAppMessage('${j.id}', 'tech')">
-                  <button onclick="sendInAppMessage('${j.id}', 'tech')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-2 rounded-lg font-bold text-xs cursor-pointer">
-                    <i class="fa-solid fa-paper-plane"></i>
+              ` : ''}
+
+              ${isAccepted ? `
+                <div class="pt-2 flex flex-col gap-2">
+                  <a href="tel:${j.clientPhone}" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-bold text-center shadow-md transition-all flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-phone"></i> اتصال هاتفي (${j.clientPhone})
+                  </a>
+                  <button onclick="markJobDone('${j.id}', '${j.clientName}', '${j.clientPhone}', '${j.estimatedCharges}')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> تم إنجاز العمل (إرسال إشعار العمولة للدعم)
                   </button>
                 </div>
-              </div>
-            ` : ''}
-
-            <!-- Action Buttons when Accepted -->
-            ${isAccepted ? `
-              <div class="pt-2 flex flex-col gap-2">
-                <a href="tel:${j.clientPhone}" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-bold text-center shadow-md transition-all flex items-center justify-center gap-1.5">
-                  <i class="fa-solid fa-phone"></i> اتصال هاتفي (${j.clientPhone})
-                </a>
-                <button onclick="markJobDone('${j.id}', '${j.clientName}', '${j.clientPhone}', '${j.estimatedCharges}')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
-                  <i class="fa-brands fa-whatsapp text-lg"></i> تم إنجاز العمل (إرسال إشعار العمولة للدعم)
-                </button>
-              </div>
-            ` : ''}
-          </div>
-        `;
-      }).join('');
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error("Error fetching jobs:", err);
+      }
     }
 
     async function submitQuote(jobId) {
       const input = document.getElementById(`quote-${jobId}`);
-      const val = input.value.trim();
-      if(!val) {
-        alert('يرجى إدخال التكلفة التقديرية أولاً');
+      const val = Number(input.value.trim());
+      if(!val || val <= 0) {
+        alert('يرجى إدخال التكلفة التقديرية بالجنيه السوداني');
         return;
       }
 
-      let job = mockJobs.find(j => j.id === jobId);
-      if(job) {
-        job.estimatedCharges = val;
-        job.status = 'quoted';
-        if(!job.messages) job.messages = [];
-        job.messages.push({
+      try {
+        const jobRef = doc(db, "jobs", jobId);
+        const docSnap = await getDoc(jobRef);
+        const currentMsgs = docSnap.exists() ? (docSnap.data().messages || []) : [];
+
+        currentMsgs.push({
           sender: 'tech',
-          text: `تم تحديد التكلفة التقديرية بقيمة: ${val} ج.س. يرجى المراجعة والقبول.`,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          text: `تم تحديد التكلفة التقديرية بقيمة: ${val.toLocaleString()} ج.س. يرجى المراجعة والقبول.`,
+          time: getSudanFormattedTime()
         });
+
+        await updateDoc(jobRef, {
+          estimatedCharges: val,
+          status: 'quoted',
+          messages: currentMsgs
+        });
+
+        alert('تم إرسال عرض السعر إلى العميل بنجاح!');
+        fetchTechJobs();
+      } catch (err) {
+        console.error("Error submitting quote:", err);
+        alert("حدث خطأ أثناء إرسال عرض السعر.");
       }
-      alert('تم إرسال عرض السعر إلى العميل بنجاح!');
-      fetchTechJobs();
     }
 
-    function sendInAppMessage(jobId, senderType) {
-      const input = document.getElementById(`msg-input-${jobId}`);
+    async function sendInAppMessage(jobId, senderType) {
+      const inputId = senderType === 'tech' ? `msg-input-${jobId}` : `client-msg-input-${jobId}`;
+      const input = document.getElementById(inputId);
       const text = input.value.trim();
       if(!text) return;
 
-      let job = mockJobs.find(j => j.id === jobId);
-      if(job) {
-        if(!job.messages) job.messages = [];
-        job.messages.push({
-          sender: senderType,
-          text: text,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
-        input.value = '';
-        
-        if(currentTechSession) {
-          fetchTechJobs();
-        } else {
-          loadClientJobs();
+      try {
+        const jobRef = doc(db, "jobs", jobId);
+        const docSnap = await getDoc(jobRef);
+        if(docSnap.exists()) {
+          const msgs = docSnap.data().messages || [];
+          msgs.push({
+            sender: senderType,
+            text: text,
+            time: getSudanFormattedTime()
+          });
+          await updateDoc(jobRef, { messages: msgs });
+          input.value = '';
+
+          if(senderType === 'tech') fetchTechJobs();
+          else loadClientJobs();
         }
+      } catch (err) {
+        console.error("Error sending message:", err);
       }
     }
 
-    function markJobDone(jobId, clientName, clientPhone, charges) {
+    async function markJobDone(jobId, clientName, clientPhone, charges) {
       let techName = currentTechSession ? currentTechSession.name : 'الفني';
       let message = `مرحباً، تم إنجاز العمل بنجاح عبر منصة صنايعي 🛠️.\n\n` +
                     `👤 العميل: ${clientName}\n` +
@@ -752,11 +778,15 @@
       let encoded = encodeURIComponent(message);
       window.open(`https://wa.me/249999119052?text=${encoded}`, '_blank');
 
-      let job = mockJobs.find(j => j.id === jobId);
-      if(job) job.status = 'completed';
-      fetchTechJobs();
+      try {
+        await updateDoc(doc(db, "jobs", jobId), { status: 'completed' });
+        fetchTechJobs();
+      } catch (err) {
+        console.error("Error completing job:", err);
+      }
     }
 
+    // --- CLIENT TRACKING MODAL ---
     function openClientTracker() {
       document.getElementById('client-tracker-modal').classList.remove('hidden');
     }
@@ -765,7 +795,7 @@
       document.getElementById('client-tracker-modal').classList.add('hidden');
     }
 
-    function loadClientJobs() {
+    async function loadClientJobs() {
       const phone = document.getElementById('track-phone').value.trim();
       const container = document.getElementById('client-orders-list');
       if(!phone) {
@@ -773,135 +803,171 @@
         return;
       }
 
-      const clientJobs = mockJobs.filter(j => j.clientPhone === phone);
-      if(clientJobs.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">لا توجد طلبات مسجلة بهذا الرقم.</p>`;
-        return;
-      }
+      try {
+        const q = query(collection(db, "jobs"), where("clientPhone", "==", phone));
+        const querySnapshot = await getDocs(q);
+        const clientJobs = [];
+        querySnapshot.forEach((doc) => clientJobs.push({ id: doc.id, ...doc.data() }));
 
-      container.innerHTML = clientJobs.map(j => {
-        let tech = allTechs.find(t => t.id === j.techId) || { name: 'فني معتمد', trade: 'صيانة عامة', phone: '0912345678' };
-        let hasQuote = j.estimatedCharges && j.estimatedCharges !== '';
-        let isAccepted = j.status === 'accepted';
-        let msgs = j.messages || [];
-        
-        let clientStatusText = '';
-        if(!hasQuote) clientStatusText = 'بانتظار تسعير الفني';
-        else if(j.status === 'quoted') clientStatusText = 'عرض سعر جديد (بانتظار موافقتك)';
-        else if(j.status === 'accepted') clientStatusText = 'تم القبول (تم تبادل الأرقام)';
-        else if(j.status === 'completed') clientStatusText = 'مكتمل';
-        else clientStatusText = 'مرفوض';
+        if(clientJobs.length === 0) {
+          container.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">لا توجد طلبات مسجلة بهذا الرقم.</p>`;
+          return;
+        }
 
-        return `
-          <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl text-xs space-y-3">
-            <div class="flex justify-between items-center">
-              <span class="font-bold text-white text-sm">الفني: ${tech.name} (${tech.trade})</span>
-              <span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded text-[10px] font-bold">
-                ${clientStatusText}
-              </span>
-            </div>
-            <p class="text-slate-300"><strong>العطل:</strong> ${j.description}</p>
-            <p class="text-slate-400"><strong>العنوان:</strong> ${j.address}</p>
+        container.innerHTML = clientJobs.map(j => {
+          let tech = allTechs.find(t => t.id === j.techId) || { name: 'فني معتمد', trade: 'صيانة عامة', phone: '0912345678' };
+          let hasQuote = j.estimatedCharges && j.estimatedCharges !== '';
+          let isAccepted = j.status === 'accepted';
+          let msgs = j.messages || [];
+          
+          let clientStatusText = '';
+          if(!hasQuote) clientStatusText = 'بانتظار تسعير الفني';
+          else if(j.status === 'quoted') clientStatusText = 'عرض سعر جديد (بانتظار موافقتك)';
+          else if(j.status === 'accepted') clientStatusText = 'تم القبول (تم تبادل الأرقام)';
+          else if(j.status === 'completed') clientStatusText = 'مكتمل';
+          else clientStatusText = 'مرفوض';
 
-            <!-- Tech Phone Number Exchange Section -->
-            <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
-              <span class="text-slate-400">رقم هاتف الفني:</span>
-              <span class="font-mono font-bold ${isAccepted ? 'text-emerald-400' : 'text-amber-400/70'}">
-                ${isAccepted ? tech.phone : '🔒 يُكشف بعد قبول عرض السعر'}
-              </span>
-            </div>
+          return `
+            <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl text-xs space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-white text-sm">الفني: ${tech.name} (${tech.trade})</span>
+                <span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded text-[10px] font-bold">
+                  ${clientStatusText}
+                </span>
+              </div>
+              <p class="text-slate-300"><strong>العطل:</strong> ${j.description}</p>
+              <p class="text-slate-400"><strong>العنوان:</strong> ${j.address}</p>
 
-            ${hasQuote ? `
-              <div class="bg-slate-900/80 p-3 rounded-xl border border-amber-500/30 space-y-2">
-                <div class="flex justify-between items-center">
-                  <span class="text-slate-300">التكلفة التقديرية المقترحة:</span>
-                  <span class="text-amber-400 font-black font-mono text-sm">${j.estimatedCharges} ج.س</span>
-                </div>
-                ${j.status === 'quoted' ? `
-                  <div class="flex gap-2 pt-1">
-                    <button onclick="updateClientJobStatus('${j.id}', 'accepted')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg transition-all cursor-pointer">قبول السعر</button>
-                    <button onclick="updateClientJobStatus('${j.id}', 'rejected')" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-lg transition-all cursor-pointer">رفض</button>
+              <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
+                <span class="text-slate-400">رقم هاتف الفني:</span>
+                <span class="font-mono font-bold ${isAccepted ? 'text-emerald-400' : 'text-amber-400/70'}">
+                  ${isAccepted ? tech.phone : '🔒 يُكشف بعد قبول عرض السعر'}
+                </span>
+              </div>
+
+              ${hasQuote ? `
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-amber-500/30 space-y-2">
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-300">التكلفة التقديرية المقترحة:</span>
+                    <span class="text-amber-400 font-black font-mono text-sm">${Number(j.estimatedCharges).toLocaleString()} ج.س</span>
                   </div>
-                ` : isAccepted ? `
-                  <p class="text-emerald-400 text-center font-bold pt-1">تم قبول السعر وتبادل الأرقام بنجاح!</p>
-                  <a href="tel:${tech.phone}" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold text-center shadow-md transition-all flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-phone"></i> اتصال بالفني (${tech.phone})
-                  </a>
-                ` : ''}
-              </div>
-            ` : `
-              <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-amber-400/90 text-center font-bold">
-                <i class="fa-solid fa-hourglass-half ml-1"></i> بانتظار تسعير الفني
-              </div>
-            `}
-
-            <!-- IN-APP CHAT FOR CLIENT -->
-            ${hasQuote ? `
-              <div class="border border-slate-700 rounded-xl bg-slate-900 p-3 space-y-2">
-                <div class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 border-b border-slate-800 pb-1.5">
-                  <i class="fa-solid fa-comments"></i> المحادثة مع الفني
+                  ${j.status === 'quoted' ? `
+                    <div class="flex gap-2 pt-1">
+                      <button onclick="updateClientJobStatus('${j.id}', 'accepted', '${j.clientName}', ${j.estimatedCharges})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg transition-all cursor-pointer">قبول السعر</button>
+                      <button onclick="updateClientJobStatus('${j.id}', 'rejected', '${j.clientName}', ${j.estimatedCharges})" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-lg transition-all cursor-pointer">رفض</button>
+                    </div>
+                  ` : isAccepted ? `
+                    <p class="text-emerald-400 text-center font-bold pt-1">تم قبول السعر وتبادل الأرقام بنجاح!</p>
+                    <a href="tel:${tech.phone}" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold text-center shadow-md transition-all flex items-center justify-center gap-1.5">
+                      <i class="fa-solid fa-phone"></i> اتصال بالفني (${tech.phone})
+                    </a>
+                  ` : ''}
                 </div>
-                <div id="client-chat-box-${j.id}" class="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-[11px]">
-                  ${msgs.length === 0 ? '<p class="text-slate-500 text-center py-2">لا توجد رسائل بعد.</p>' : 
-                    msgs.map(m => `
-                      <div class="flex flex-col ${m.sender === 'client' ? 'items-end' : 'items-start'}">
-                        <div class="max-w-[85%] p-2 rounded-xl ${m.isExample ? 'opacity-40 italic text-slate-400 border border-slate-800 bg-slate-950/40' : (m.sender === 'client' ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30' : 'bg-slate-800 text-slate-200 border border-slate-700')}">
-                          ${m.text} ${m.isExample ? '<span class="text-[8px] block text-slate-500">(مثال توضيحي)</span>' : ''}
+              ` : `
+                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-amber-400/90 text-center font-bold">
+                  <i class="fa-solid fa-hourglass-half ml-1"></i> بانتظار تسعير الفني
+                </div>
+              `}
+
+              ${hasQuote ? `
+                <div class="border border-slate-700 rounded-xl bg-slate-900 p-3 space-y-2">
+                  <div class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 border-b border-slate-800 pb-1.5">
+                    <i class="fa-solid fa-comments"></i> المحادثة مع الفني
+                  </div>
+                  <div id="client-chat-box-${j.id}" class="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-[11px]">
+                    ${msgs.length === 0 ? '<p class="text-slate-500 text-center py-2">لا توجد رسائل بعد.</p>' : 
+                      msgs.map(m => `
+                        <div class="flex flex-col ${m.sender === 'client' ? 'items-end' : 'items-start'}">
+                          <div class="max-w-[85%] p-2 rounded-xl ${m.sender === 'client' ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30' : 'bg-slate-800 text-slate-200 border border-slate-700'}">
+                            ${m.text}
+                          </div>
+                          <span class="text-[9px] text-slate-500 mt-0.5 px-1">${m.time}</span>
                         </div>
-                        <span class="text-[9px] text-slate-500 mt-0.5 px-1">${m.time}</span>
-                      </div>
-                    `).join('')}
+                      `).join('')}
+                  </div>
+                  <div class="flex gap-1.5 pt-1">
+                    <input type="text" id="client-msg-input-${j.id}" placeholder="اكتب ردك للفني..." class="w-full p-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500" onkeydown="if(event.key==='Enter') sendInAppMessage('${j.id}', 'client')">
+                    <button onclick="sendInAppMessage('${j.id}', 'client')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-2 rounded-lg font-bold text-xs cursor-pointer">
+                      <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                  </div>
                 </div>
-                <div class="flex gap-1.5 pt-1">
-                  <input type="text" id="client-msg-input-${j.id}" placeholder="اكتب ردك للفني..." class="w-full p-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500" onkeydown="if(event.key==='Enter') sendClientInAppMessage('${j.id}')">
-                  <button onclick="sendClientInAppMessage('${j.id}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-2 rounded-lg font-bold text-xs cursor-pointer">
-                    <i class="fa-solid fa-paper-plane"></i>
-                  </button>
-                </div>
-              </div>
-            ` : ''}
-          </div>
-        `;
-      }).join('');
-    }
-
-    function sendClientInAppMessage(jobId) {
-      const input = document.getElementById(`client-msg-input-${jobId}`);
-      const text = input.value.trim();
-      if(!text) return;
-
-      let job = mockJobs.find(j => j.id === jobId);
-      if(job) {
-        if(!job.messages) job.messages = [];
-        job.messages.push({
-          sender: 'client',
-          text: text,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
-        input.value = '';
-        loadClientJobs();
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error("Error loading client jobs:", err);
       }
     }
 
-    function updateClientJobStatus(jobId, newStatus) {
-      let job = mockJobs.find(j => j.id === jobId);
-      if(job) {
-        job.status = newStatus;
+    async function updateClientJobStatus(jobId, newStatus, clientName, agreedPrice) {
+      try {
+        const jobRef = doc(db, "jobs", jobId);
+        const docSnap = await getDoc(jobRef);
+        const msgs = docSnap.exists() ? (docSnap.data().messages || []) : [];
+
         if(newStatus === 'accepted') {
-          if(!job.messages) job.messages = [];
-          job.messages.push({
+          msgs.push({
             sender: 'client',
             text: 'تم قبول عرض السعر بنجاح.',
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            time: getSudanFormattedTime()
           });
+
+          // Update primary job status
+          await updateDoc(jobRef, {
+            status: 'accepted',
+            messages: msgs,
+            acceptedAt: getSudanISOString()
+          });
+
+          // 💾 Log accepted transaction into 'accepted_prices' collection
+          await addDoc(collection(db, "accepted_prices"), {
+            jobId: jobId,
+            clientName: clientName,
+            agreedPrice: Number(agreedPrice),
+            currency: "SDG",
+            timestamp: getSudanISOString(),
+            formattedTime: getSudanFormattedTime()
+          });
+
           alert('تم قبول السعر بنجاح! تم تبادل الأرقام وتفعيل الاتصال والمحادثة المباشرة.');
         } else {
+          await updateDoc(jobRef, { status: 'rejected' });
           alert('تم رفض السعر.');
         }
         loadClientJobs();
+      } catch (err) {
+        console.error("Error updating status:", err);
+        alert("حدث خطأ أثناء تحديث حالة الطلب.");
       }
     }
 
+    // --- BIND FUNCTIONS TO GLOBAL WINDOW SCOPE FOR HTML HANDLERS ---
+    window.toggleView = toggleView;
+    window.filterTrade = filterTrade;
+    window.toggleOtherSearch = toggleOtherSearch;
+    window.handleCustomSearch = handleCustomSearch;
+    window.handleTradeChange = handleTradeChange;
+    window.validateCustomTradeWords = validateCustomTradeWords;
+    window.showRegisterModal = showRegisterModal;
+    window.hideRegisterModal = hideRegisterModal;
+    window.handleRegister = handleRegister;
+    window.handleLogin = handleLogin;
+    window.handleLogout = handleLogout;
+    window.openBookingModal = openBookingModal;
+    window.closeBookingModal = closeBookingModal;
+    window.submitBooking = submitBooking;
+    window.fetchTechJobs = fetchTechJobs;
+    window.submitQuote = submitQuote;
+    window.sendInAppMessage = sendInAppMessage;
+    window.markJobDone = markJobDone;
+    window.openClientTracker = openClientTracker;
+    window.closeClientTracker = closeClientTracker;
+    window.loadClientJobs = loadClientJobs;
+    window.updateClientJobStatus = updateClientJobStatus;
+
+    // Initial Load
     fetchTechnicians();
   </script>
 </body>
