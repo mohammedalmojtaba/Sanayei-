@@ -269,7 +269,7 @@
     <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <h3 class="font-black text-base text-white flex items-center gap-2">
-          <i class="fa-solid fa-clipboard-list text-amber-500"></i> متابعة طلباتي وعروض الأسعار والمحادثة
+          <i class="fa-solid fa-clipboard-list text-amber-500"></i> متابعة طلباتي وعروض الأسعار
         </h3>
         <button type="button" onclick="closeClientTracker()" class="text-slate-400 hover:text-white cursor-pointer bg-transparent border-0">
           <i class="fa-solid fa-xmark text-xl"></i>
@@ -298,7 +298,6 @@
       collection, 
       addDoc, 
       getDocs, 
-      getDoc, 
       doc, 
       updateDoc, 
       query, 
@@ -608,13 +607,12 @@
         description: document.getElementById('book-desc').value.trim(),
         status: 'pending',
         estimatedCharges: '',
-        messages: [],
         createdAt: getSudanISOString()
       };
 
       try {
         await addDoc(collection(db, "jobs"), payload);
-        alert('تم إرسال طلبك بنجاح! يمكنك متابعة حالة الطلب وعرض التكلفة والمحادثة من زر "طلباتي" بالأعلى.');
+        alert('تم إرسال طلبك بنجاح! يمكنك متابعة حالة الطلب وعرض التكلفة من زر "طلباتي" بالأعلى.');
         closeBookingModal();
         e.target.reset();
       } catch (err) {
@@ -641,8 +639,6 @@
 
         container.innerHTML = jobs.map(j => {
           let isAccepted = j.status === 'accepted';
-          let isQuoted = j.status === 'quoted' || j.status === 'accepted';
-          let msgs = j.messages || [];
           
           let statusBadgeText = '';
           if(j.status === 'pending') statusBadgeText = 'بانتظار التسعير من قبلك';
@@ -685,31 +681,6 @@
                 </div>
               `}
 
-              ${isQuoted || isAccepted ? `
-                <div class="border border-slate-800 rounded-xl bg-slate-950 p-3 space-y-2">
-                  <div class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 border-b border-slate-800 pb-1.5">
-                    <i class="fa-solid fa-comments"></i> المحادثة الفورية داخل المنصة
-                  </div>
-                  <div id="chat-box-${j.id}" class="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-[11px]">
-                    ${msgs.length === 0 ? '<p class="text-slate-500 text-center py-2">لا توجد رسائل بعد.</p>' : 
-                      msgs.map(m => `
-                        <div class="flex flex-col ${m.sender === 'tech' ? 'items-end' : 'items-start'}">
-                          <div class="max-w-[85%] p-2 rounded-xl ${m.sender === 'tech' ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30' : 'bg-slate-800 text-slate-200 border border-slate-700'}">
-                            ${m.text}
-                          </div>
-                          <span class="text-[9px] text-slate-500 mt-0.5 px-1">${m.time}</span>
-                        </div>
-                      `).join('')}
-                  </div>
-                  <div class="flex gap-1.5 pt-1">
-                    <input type="text" id="msg-input-${j.id}" placeholder="اكتب رسالتك..." class="w-full p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500" onkeydown="if(event.key==='Enter') sendInAppMessage('${j.id}', 'tech')">
-                    <button onclick="sendInAppMessage('${j.id}', 'tech')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-2 rounded-lg font-bold text-xs cursor-pointer">
-                      <i class="fa-solid fa-paper-plane"></i>
-                    </button>
-                  </div>
-                </div>
-              ` : ''}
-
               ${isAccepted ? `
                 <div class="pt-2 flex flex-col gap-2">
                   <a href="tel:${j.clientPhone}" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-bold text-center shadow-md transition-all flex items-center justify-center gap-1.5">
@@ -740,19 +711,9 @@
 
       try {
         const jobRef = doc(db, "jobs", jobId);
-        const docSnap = await getDoc(jobRef);
-        const currentMsgs = docSnap.exists() ? (docSnap.data().messages || []) : [];
-
-        currentMsgs.push({
-          sender: 'tech',
-          text: `تم تحديد التكلفة التقديرية بقيمة: ${val.toLocaleString('en-US')} ج.س. يرجى المراجعة والقبول.`,
-          time: getSudanFormattedTime()
-        });
-
         await updateDoc(jobRef, {
           estimatedCharges: val,
-          status: 'quoted',
-          messages: currentMsgs
+          status: 'quoted'
         });
 
         alert('تم إرسال عرض السعر إلى العميل بنجاح!');
@@ -760,33 +721,6 @@
       } catch (err) {
         console.error("Error submitting quote:", err);
         alert("حدث خطأ أثناء إرسال عرض السعر.");
-      }
-    }
-
-    async function sendInAppMessage(jobId, senderType) {
-      const inputId = senderType === 'tech' ? `msg-input-${jobId}` : `client-msg-input-${jobId}`;
-      const input = document.getElementById(inputId);
-      const text = input.value.trim();
-      if(!text) return;
-
-      try {
-        const jobRef = doc(db, "jobs", jobId);
-        const docSnap = await getDoc(jobRef);
-        if(docSnap.exists()) {
-          const msgs = docSnap.data().messages || [];
-          msgs.push({
-            sender: senderType,
-            text: text,
-            time: getSudanFormattedTime()
-          });
-          await updateDoc(jobRef, { messages: msgs });
-          input.value = '';
-
-          if(senderType === 'tech') fetchTechJobs();
-          else loadClientJobs();
-        }
-      } catch (err) {
-        console.error("Error sending message:", err);
       }
     }
 
@@ -842,7 +776,6 @@
           let tech = allTechs.find(t => t.id === j.techId) || { name: 'فني معتمد', trade: 'صيانة عامة', phone: '0912345678' };
           let hasQuote = j.estimatedCharges && j.estimatedCharges !== '';
           let isAccepted = j.status === 'accepted';
-          let msgs = j.messages || [];
           
           let clientStatusText = '';
           if(!hasQuote) clientStatusText = 'بانتظار تسعير الفني';
@@ -892,31 +825,6 @@
                   <i class="fa-solid fa-hourglass-half ml-1"></i> بانتظار تسعير الفني
                 </div>
               `}
-
-              ${hasQuote ? `
-                <div class="border border-slate-700 rounded-xl bg-slate-900 p-3 space-y-2">
-                  <div class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5 border-b border-slate-800 pb-1.5">
-                    <i class="fa-solid fa-comments"></i> المحادثة مع الفني
-                  </div>
-                  <div id="client-chat-box-${j.id}" class="max-h-36 overflow-y-auto space-y-1.5 pr-1 text-[11px]">
-                    ${msgs.length === 0 ? '<p class="text-slate-500 text-center py-2">لا توجد رسائل بعد.</p>' : 
-                      msgs.map(m => `
-                        <div class="flex flex-col ${m.sender === 'client' ? 'items-end' : 'items-start'}">
-                          <div class="max-w-[85%] p-2 rounded-xl ${m.sender === 'client' ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30' : 'bg-slate-800 text-slate-200 border border-slate-700'}">
-                            ${m.text}
-                          </div>
-                          <span class="text-[9px] text-slate-500 mt-0.5 px-1">${m.time}</span>
-                        </div>
-                      `).join('')}
-                  </div>
-                  <div class="flex gap-1.5 pt-1">
-                    <input type="text" id="client-msg-input-${j.id}" placeholder="اكتب ردك للفني..." class="w-full p-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500" onkeydown="if(event.key==='Enter') sendInAppMessage('${j.id}', 'client')">
-                    <button onclick="sendInAppMessage('${j.id}', 'client')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-2 rounded-lg font-bold text-xs cursor-pointer">
-                      <i class="fa-solid fa-paper-plane"></i>
-                    </button>
-                  </div>
-                </div>
-              ` : ''}
             </div>
           `;
         }).join('');
@@ -928,20 +836,11 @@
     async function updateClientJobStatus(jobId, newStatus, clientName, agreedPrice) {
       try {
         const jobRef = doc(db, "jobs", jobId);
-        const docSnap = await getDoc(jobRef);
-        const msgs = docSnap.exists() ? (docSnap.data().messages || []) : [];
 
         if(newStatus === 'accepted') {
-          msgs.push({
-            sender: 'client',
-            text: 'تم قبول عرض السعر بنجاح.',
-            time: getSudanFormattedTime()
-          });
-
           // Update primary job status
           await updateDoc(jobRef, {
             status: 'accepted',
-            messages: msgs,
             acceptedAt: getSudanISOString()
           });
 
@@ -955,7 +854,7 @@
             formattedTime: getSudanFormattedTime()
           });
 
-          alert('تم قبول السعر بنجاح! تم تبادل الأرقام وتفعيل الاتصال والمحادثة المباشرة.');
+          alert('تم قبول السعر بنجاح! تم تبادل الأرقام وتفعيل الاتصال المباشر.');
         } else {
           await updateDoc(jobRef, { status: 'rejected' });
           alert('تم رفض السعر.');
@@ -985,7 +884,6 @@
     window.submitBooking = submitBooking;
     window.fetchTechJobs = fetchTechJobs;
     window.submitQuote = submitQuote;
-    window.sendInAppMessage = sendInAppMessage;
     window.markJobDone = markJobDone;
     window.openClientTracker = openClientTracker;
     window.closeClientTracker = closeClientTracker;
