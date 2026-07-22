@@ -777,6 +777,11 @@
           let hasQuote = j.estimatedCharges && j.estimatedCharges !== '';
           let isAccepted = j.status === 'accepted';
           
+          let safeClientName = (j.clientName || '').replace(/'/g, "\\'");
+          let safeClientPhone = (j.clientPhone || '').replace(/'/g, "\\'");
+          let safeTechName = (tech.name || '').replace(/'/g, "\\'");
+          let safeTechPhone = (tech.phone || '').replace(/'/g, "\\'");
+
           let clientStatusText = '';
           if(!hasQuote) clientStatusText = 'بانتظار تسعير الفني';
           else if(j.status === 'quoted') clientStatusText = 'عرض سعر جديد (بانتظار موافقتك)';
@@ -810,8 +815,8 @@
                   </div>
                   ${j.status === 'quoted' ? `
                     <div class="flex gap-2 pt-1">
-                      <button onclick="updateClientJobStatus('${j.id}', 'accepted', '${j.clientName}', ${j.estimatedCharges})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg transition-all cursor-pointer">قبول السعر</button>
-                      <button onclick="updateClientJobStatus('${j.id}', 'rejected', '${j.clientName}', ${j.estimatedCharges})" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-lg transition-all cursor-pointer">رفض</button>
+                      <button onclick="updateClientJobStatus('${j.id}', 'accepted', '${safeClientName}', '${safeClientPhone}', '${safeTechName}', '${safeTechPhone}', ${j.estimatedCharges})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg transition-all cursor-pointer">قبول السعر</button>
+                      <button onclick="updateClientJobStatus('${j.id}', 'rejected', '${safeClientName}', '${safeClientPhone}', '${safeTechName}', '${safeTechPhone}', ${j.estimatedCharges})" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-lg transition-all cursor-pointer">رفض</button>
                     </div>
                   ` : isAccepted ? `
                     <p class="text-emerald-400 text-center font-bold pt-1">تم قبول السعر وتبادل الأرقام بنجاح!</p>
@@ -833,7 +838,7 @@
       }
     }
 
-    async function updateClientJobStatus(jobId, newStatus, clientName, agreedPrice) {
+    async function updateClientJobStatus(jobId, newStatus, clientName, clientPhone, techName, techPhone, agreedPrice) {
       try {
         const jobRef = doc(db, "jobs", jobId);
 
@@ -844,10 +849,13 @@
             acceptedAt: getSudanISOString()
           });
 
-          // 💾 Log accepted transaction into 'accepted_prices' collection
+          // 💾 Log accepted transaction into 'accepted_prices' collection with all tech and client details
           await addDoc(collection(db, "accepted_prices"), {
             jobId: jobId,
             clientName: clientName,
+            clientPhone: clientPhone,
+            techName: techName,
+            techPhone: techPhone,
             agreedPrice: Number(agreedPrice),
             currency: "SDG",
             timestamp: getSudanISOString(),
