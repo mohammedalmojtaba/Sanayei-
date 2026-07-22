@@ -339,6 +339,28 @@
       });
     }
 
+    // --- PRICE FORMATTING UTILITIES ---
+    function formatPriceInput(input) {
+      let cursorPosition = input.selectionStart;
+      let originalLength = input.value.length;
+
+      let value = input.value.replace(/[^0-9.]/g, '');
+      const parts = value.split('.');
+      if (parts.length > 2) {
+        value = parts[0] + '.' + parts.slice(1).join('');
+      }
+
+      if (parts[0]) {
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      }
+
+      input.value = parts.join('.');
+
+      let newLength = input.value.length;
+      cursorPosition += (newLength - originalLength);
+      input.setSelectionRange(cursorPosition, cursorPosition);
+    }
+
     // --- NAVIGATION & UI HANDLERS ---
     function toggleView() {
       const custView = document.getElementById('customer-view');
@@ -515,7 +537,6 @@
       }
 
       try {
-        // Save technician to Firestore
         await addDoc(collection(db, "technicians"), payload);
         alert('تم التسجيل بنجاح! يمكنك تسجيل الدخول الآن.');
         hideRegisterModal();
@@ -585,7 +606,7 @@
         clientPhone: document.getElementById('book-client-phone').value.trim(),
         address: document.getElementById('book-address').value.trim(),
         description: document.getElementById('book-desc').value.trim(),
-        status: 'pending', // Starts as pending (NOT rejected)
+        status: 'pending',
         estimatedCharges: '',
         messages: [],
         createdAt: getSudanISOString()
@@ -652,7 +673,7 @@
                 <div class="space-y-2 pt-2 border-t border-slate-800">
                   <label class="text-slate-300 font-semibold block">التكلفة التقديرية (جنية سوداني):</label>
                   <div class="flex gap-2">
-                    <input type="number" id="quote-${j.id}" placeholder="أدخل التكلفة المقترحة" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-mono focus:outline-none focus:border-amber-500">
+                    <input type="text" id="quote-${j.id}" inputmode="decimal" oninput="formatPriceInput(this)" placeholder="0.00" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-mono focus:outline-none focus:border-amber-500">
                     <button onclick="submitQuote('${j.id}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-2.5 rounded-xl transition-all cursor-pointer whitespace-nowrap">
                       إرسال السعر
                     </button>
@@ -660,7 +681,7 @@
                 </div>
               ` : `
                 <div class="text-[11px] text-slate-400 bg-slate-800/40 p-2 rounded-xl">
-                  التكلفة المقدرة: <strong class="text-amber-400 font-mono">${j.estimatedCharges || 'غير محدد'} ج.س</strong>
+                  التكلفة المقدرة: <strong class="text-amber-400 font-mono">${j.estimatedCharges ? Number(j.estimatedCharges).toLocaleString('en-US') : 'غير محدد'} ج.س</strong>
                 </div>
               `}
 
@@ -709,7 +730,9 @@
 
     async function submitQuote(jobId) {
       const input = document.getElementById(`quote-${jobId}`);
-      const val = Number(input.value.trim());
+      const rawVal = input.value.replace(/,/g, '').trim();
+      const val = parseFloat(rawVal);
+
       if(!val || val <= 0) {
         alert('يرجى إدخال التكلفة التقديرية بالجنيه السوداني');
         return;
@@ -722,7 +745,7 @@
 
         currentMsgs.push({
           sender: 'tech',
-          text: `تم تحديد التكلفة التقديرية بقيمة: ${val.toLocaleString()} ج.س. يرجى المراجعة والقبول.`,
+          text: `تم تحديد التكلفة التقديرية بقيمة: ${val.toLocaleString('en-US')} ج.س. يرجى المراجعة والقبول.`,
           time: getSudanFormattedTime()
         });
 
@@ -769,11 +792,12 @@
 
     async function markJobDone(jobId, clientName, clientPhone, charges) {
       let techName = currentTechSession ? currentTechSession.name : 'الفني';
+      let formattedCharges = Number(charges).toLocaleString('en-US');
       let message = `مرحباً، تم إنجاز العمل بنجاح عبر منصة صنايعي 🛠️.\n\n` +
                     `👤 العميل: ${clientName}\n` +
                     `🔧 الفني: ${techName}\n` +
-                    `💰 التكلفة النهائية: ${charges} ج.س\n` +
-                    `📌 ملاحظة: يرجى تحويل عمولة المنصة (10%): ${Math.round(Number(charges) * 0.1 || 0)} ج.س عبر واتساب الدعم.`;
+                    `💰 التكلفة النهائية: ${formattedCharges} ج.س\n` +
+                    `📌 ملاحظة: يرجى تحويل عمولة المنصة (10%): ${Math.round(Number(charges) * 0.1 || 0).toLocaleString('en-US')} ج.س عبر واتساب الدعم.`;
 
       let encoded = encodeURIComponent(message);
       window.open(`https://wa.me/249999119052?text=${encoded}`, '_blank');
@@ -849,7 +873,7 @@
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-amber-500/30 space-y-2">
                   <div class="flex justify-between items-center">
                     <span class="text-slate-300">التكلفة التقديرية المقترحة:</span>
-                    <span class="text-amber-400 font-black font-mono text-sm">${Number(j.estimatedCharges).toLocaleString()} ج.س</span>
+                    <span class="text-amber-400 font-black font-mono text-sm">${Number(j.estimatedCharges).toLocaleString('en-US')} ج.س</span>
                   </div>
                   ${j.status === 'quoted' ? `
                     <div class="flex gap-2 pt-1">
@@ -944,6 +968,7 @@
     }
 
     // --- BIND FUNCTIONS TO GLOBAL WINDOW SCOPE FOR HTML HANDLERS ---
+    window.formatPriceInput = formatPriceInput;
     window.toggleView = toggleView;
     window.filterTrade = filterTrade;
     window.toggleOtherSearch = toggleOtherSearch;
