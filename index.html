@@ -165,7 +165,7 @@
             <input type="text" id="reg-name" placeholder="مثال: طارق أحمد" required class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white">
           </div>
           <div>
-            <label class="text-xs font-semibold text-slate-300 block mb-1">رقم الهاتف (10 أرقام على الأقل)</label>
+            <label class="text-xs font-semibold text-slate-300 block mb-1">رقم الهاتف (10 أرقام حقيقية على الأقل)</label>
             <input type="tel" id="reg-phone" placeholder="0912345678" required class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white font-mono">
           </div>
           <div>
@@ -487,6 +487,18 @@
       document.getElementById('login-section').classList.remove('hidden');
     }
 
+    // --- HELPER TO CHECK SEQUENTIAL / DUMMY PATTERNS ---
+    function isSequential(str) {
+      let asc = true, desc = true;
+      for (let i = 0; i < str.length - 1; i++) {
+        let curr = parseInt(str[i]);
+        let next = parseInt(str[i+1]);
+        if (next !== curr + 1) asc = false;
+        if (next !== curr - 1) desc = false;
+      }
+      return asc || desc;
+    }
+
     // --- TECHNICIAN REGISTRATION & LOGIN (FIREBASE) ---
     async function handleRegister(e) {
       e.preventDefault();
@@ -497,8 +509,8 @@
         return;
       }
 
-      const pin = document.getElementById('reg-pin').value;
-      const confirmPin = document.getElementById('reg-confirm-pin').value;
+      const pin = document.getElementById('reg-pin').value.trim();
+      const confirmPin = document.getElementById('reg-confirm-pin').value.trim();
 
       if (pin !== confirmPin) {
         alert('رمز الـ PIN غير متطابق. يرجى التحقق من إعادة كتابة الرمز.');
@@ -510,10 +522,26 @@
         return;
       }
 
-      const phone = document.getElementById('reg-phone').value.trim();
-      const cleanPhone = phone.replace(/\D/g, '');
+      const rawPhone = document.getElementById('reg-phone').value.trim();
+      const cleanPhone = rawPhone.replace(/\D/g, '');
+
+      // 1. Minimum Length Validation (At least 10 digits)
       if (cleanPhone.length < 10) {
-        alert('رقم الهاتف يجب ألا يقل عن 10 أرقام');
+        alert('رقم الهاتف غير صالح. يجب ألا يقل عن 10 أرقام.');
+        return;
+      }
+
+      // 2. Anti-Spam / Dummy Number Validation
+      // Check if all digits are identical (e.g. 0000000000, 1111111111)
+      if (new Set(cleanPhone).size === 1) {
+        alert('رقم الهاتف غير صالح. لا يمكن أن تكون جميع الأرقام متشابهة.');
+        return;
+      }
+
+      // Check for placeholder sequences or full sequential numbers (like 12345678, 0912345678)
+      const dummyPatterns = ['12345678', '01234567', '98765432', '0912345678', '0999999999'];
+      if (dummyPatterns.some(pattern => cleanPhone.includes(pattern)) || isSequential(cleanPhone)) {
+        alert('رقم الهاتف المدخل وهمي أو تسلسلي غير مسموح به. يرجى إدخال رقم هاتفك الحقيقي.');
         return;
       }
 
@@ -533,17 +561,26 @@
       }
 
       try {
-        // Check if phone number already exists in database
-        const phoneQuery = query(collection(db, "technicians"), where("phone", "==", phone));
-        const phoneSnapshot = await getDocs(phoneQuery);
-        if (!phoneSnapshot.empty) {
+        // 3. Uniqueness Check (Querying database for existing phone)
+        const querySnapshot = await getDocs(collection(db, "technicians"));
+        let phoneExists = false;
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const existingClean = (data.phone || '').replace(/\D/g, '');
+          if (existingClean === cleanPhone) {
+            phoneExists = true;
+          }
+        });
+
+        if (phoneExists) {
           alert('رقم الهاتف مسجل مسبقاً بحساب آخر. يرجى استخدام رقم هاتف مختلف أو تسجيل الدخول.');
           return;
         }
 
         const payload = {
           name: document.getElementById('reg-name').value.trim(),
-          phone: phone,
+          phone: rawPhone,
+          cleanPhone: cleanPhone,
           pin: pin,
           trade: tradeVal,
           area: document.getElementById('reg-area').value.trim(),
