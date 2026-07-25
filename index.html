@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>صنايعي - Sanayei | دليل الفنيين في السودان</title>
+  
+  <!-- PWA & App Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#d97706">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome for Icons -->
@@ -13,10 +20,10 @@
     body { font-family: 'Cairo', sans-serif; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans pb-16 min-h-screen">
+<body class="bg-slate-900 text-slate-100 font-sans pb-24 min-h-screen">
 
-  <!-- Header -->
-  <header class="bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 text-white p-4 shadow-2xl sticky top-0 z-50 border-b border-amber-400/20 backdrop-blur-md">
+  <!-- Streamlined Header -->
+  <header class="bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 text-white p-4 shadow-2xl sticky top-0 z-40 border-b border-amber-400/20 backdrop-blur-md">
     <div class="max-w-md mx-auto flex justify-between items-center">
       <div class="flex items-center space-x-3 space-x-reverse">
         <div class="w-11 h-11 bg-slate-900/20 rounded-2xl flex items-center justify-center shadow-inner border border-white/30 backdrop-blur-sm">
@@ -27,21 +34,13 @@
           <p class="text-[10px] text-amber-100 font-semibold tracking-wide">SANAYEI • السودان</p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="openClientTracker()" class="bg-slate-900/80 hover:bg-slate-900 text-xs px-3 py-2.5 rounded-xl font-bold shadow-lg transition-all border border-amber-400/40 text-amber-300 flex items-center gap-1.5 cursor-pointer" title="متابعة طلباتي وعروض الأسعار">
-          <i class="fa-solid fa-clipboard-list"></i> طلباتي
-        </button>
-        <button onclick="toggleView()" id="nav-toggle" class="bg-slate-900/80 hover:bg-slate-900 text-xs px-3.5 py-2.5 rounded-xl font-bold shadow-lg transition-all border border-amber-400/40 text-amber-300 flex items-center gap-1.5 cursor-pointer">
-          <i class="fa-solid fa-user-gear"></i> بوابة الفنيين
-        </button>
-      </div>
     </div>
   </header>
 
   <main class="max-w-md mx-auto p-4 mt-2">
 
-    <!-- CUSTOMER VIEW -->
-    <div id="customer-view" class="space-y-4">
+    <!-- 1. HOME / DIRECTORY VIEW -->
+    <div id="view-home" class="app-view space-y-4">
       <div class="bg-gradient-to-br from-slate-800 to-slate-800/80 border border-slate-700/80 p-5 rounded-3xl shadow-xl relative overflow-hidden">
         <div class="absolute -left-6 -bottom-6 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl"></div>
         <h2 class="text-xl font-black text-white mb-1">اعثر على أفضل الفنيين المعتمدين</h2>
@@ -58,7 +57,7 @@
           <button onclick="toggleOtherSearch(this)" class="category-btn bg-slate-700/60 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs py-2.5 rounded-xl font-semibold transition-all col-span-3 cursor-pointer">أخرى (بحث مخصص)</button>
         </div>
 
-        <!-- Custom Search Box for 'Other' -->
+        <!-- Custom Search Box -->
         <div id="custom-search-box" class="hidden mt-3">
           <input type="text" id="search-input" oninput="handleCustomSearch(this.value)" placeholder="ابحث عن المهنة أو التخصص المطلوب..." class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
         </div>
@@ -74,7 +73,7 @@
         </div>
       </div>
 
-      <!-- WhatsApp Support Button -->
+      <!-- WhatsApp Support -->
       <div class="pt-2">
         <a href="https://wa.me/249999119052" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-2xl text-xs shadow-lg transition-all flex items-center justify-center gap-2">
           <i class="fa-brands fa-whatsapp text-lg"></i> للاستفسارات والبلاغات اتصل بنا عبر واتساب
@@ -82,9 +81,31 @@
       </div>
     </div>
 
-    <!-- TECHNICIAN PORTAL VIEW -->
-    <div id="tech-view" class="hidden space-y-4">
-      
+    <!-- 2. CLIENT ORDERS & TRACKER VIEW -->
+    <div id="view-orders" class="app-view hidden space-y-4">
+      <div class="bg-slate-800/90 border border-slate-700 p-5 rounded-3xl shadow-xl space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+          <h3 class="font-black text-base text-white flex items-center gap-2">
+            <i class="fa-solid fa-clipboard-list text-amber-500"></i> متابعة طلباتي وعروض الأسعار
+          </h3>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-slate-300 block">رقم هاتفك المسجل بالطلبات:</label>
+          <div class="flex gap-2">
+            <input type="tel" id="track-phone" placeholder="0912345678" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white font-mono focus:outline-none focus:border-amber-500">
+            <button onclick="loadClientJobs()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-3 rounded-xl font-bold text-xs transition-all cursor-pointer whitespace-nowrap">عرض</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="client-orders-list" class="space-y-3">
+        <p class="text-xs text-slate-500 text-center py-8">أدخل رقم هاتفك أعلاه لعرض طلباتك وعروض الأسعار الحالية.</p>
+      </div>
+    </div>
+
+    <!-- 3. TECHNICIAN PORTAL VIEW -->
+    <div id="view-tech" class="app-view hidden space-y-4">
       <!-- Login Card -->
       <div id="login-section" class="bg-slate-800/90 border border-slate-700 p-6 rounded-3xl shadow-2xl backdrop-blur-md">
         <div class="text-center mb-6">
@@ -197,7 +218,6 @@
           <div id="custom-trade-container" class="hidden">
             <label class="text-xs font-semibold text-slate-300 block mb-1">اكتب التخصص بدقة (حد أقصى 5 كلمات)</label>
             <input type="text" id="reg-custom-trade" oninput="validateCustomTradeWords(this)" placeholder="مثال: فني كاميرات مراقبة" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:outline-none focus:border-amber-500 text-white">
-            <p class="text-[10px] text-amber-400 mt-1">الحد الأقصى المسموح به هو 5 كلمات فقط.</p>
           </div>
 
           <div>
@@ -231,9 +251,28 @@
           </button>
         </form>
       </div>
-
     </div>
+
   </main>
+
+  <!-- FIXED BOTTOM TAB BAR NAVIGATION (3 Tabs) -->
+  <nav class="fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 border-t border-slate-800 backdrop-blur-lg px-2 py-2 max-w-md mx-auto flex justify-around items-center shadow-2xl">
+    <button onclick="switchTab('home')" id="tab-home" class="flex flex-col items-center text-amber-500 transition-all cursor-pointer bg-transparent border-0 px-3 py-1">
+      <i class="fa-solid fa-house text-lg mb-1"></i>
+      <span class="text-[10px] font-bold">الرئيسية</span>
+    </button>
+    <button onclick="switchTab('orders')" id="tab-orders" class="flex flex-col items-center text-slate-400 hover:text-amber-400 transition-all cursor-pointer bg-transparent border-0 px-3 py-1">
+      <i class="fa-solid fa-clipboard-list text-lg mb-1"></i>
+      <span class="text-[10px] font-bold">طلباتي</span>
+    </button>
+    <button onclick="switchTab('tech')" id="tab-tech" class="flex flex-col items-center text-slate-400 hover:text-amber-400 transition-all relative cursor-pointer bg-transparent border-0 px-3 py-1">
+      <i class="fa-solid fa-user-gear text-lg mb-1"></i>
+      <!-- Technician Notification Indicator -->
+      <span id="tech-notif-ping" class="absolute top-1 right-3 w-2.5 h-2.5 bg-amber-500 rounded-full hidden animate-ping"></span>
+      <span id="tech-notif-dot" class="absolute top-1 right-3 w-2.5 h-2.5 bg-amber-500 rounded-full hidden"></span>
+      <span class="text-[10px] font-bold">بوابة الفنيين</span>
+    </button>
+  </nav>
 
   <!-- Edit Profile Modal -->
   <div id="edit-profile-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
@@ -271,7 +310,6 @@
           </select>
         </div>
 
-        <!-- Custom Trade Edit Input -->
         <div id="edit-custom-trade-container" class="hidden">
           <label class="text-xs font-semibold text-slate-300 block mb-1">اكتب التخصص بدقة (حد أقصى 5 كلمات)</label>
           <input type="text" id="edit-custom-trade" oninput="validateCustomTradeWords(this)" placeholder="مثال: فني كاميرات مراقبة" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
@@ -314,39 +352,12 @@
         </div>
         <div>
           <label class="text-xs font-semibold text-slate-300 block mb-1">تفاصيل العطل أو الخدمة المطلوبة</label>
-          <textarea id="book-desc" rows="3" placeholder="اشرح تفاصيل العطل والمشكلة بدقة ليتمكن الفني من منحك السعر الصحيح..." required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"></textarea>
-          <p class="text-[10px] text-amber-400 mt-1">كلما كانت التفاصيل أوضح، كلما تمكن الفني من تحديد التكلفة الصحيحة بدقة.</p>
+          <textarea id="book-desc" rows="3" placeholder="اشرح تفاصيل العطل والمشكلة بدقة..." required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"></textarea>
         </div>
         <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-500/20 transition-all mt-2 cursor-pointer">
           إرسال طلب الخدمة للفني
         </button>
       </form>
-    </div>
-  </div>
-
-  <!-- Client Track Orders Modal -->
-  <div id="client-tracker-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 class="font-black text-base text-white flex items-center gap-2">
-          <i class="fa-solid fa-clipboard-list text-amber-500"></i> متابعة طلباتي وعروض الأسعار
-        </h3>
-        <button type="button" onclick="closeClientTracker()" class="text-slate-400 hover:text-white cursor-pointer bg-transparent border-0">
-          <i class="fa-solid fa-xmark text-xl"></i>
-        </button>
-      </div>
-
-      <div class="space-y-3">
-        <label class="text-xs font-semibold text-slate-300 block">أدخل رقم هاتفك لعرض طلباتك:</label>
-        <div class="flex gap-2">
-          <input type="tel" id="track-phone" placeholder="0912345678" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white font-mono focus:outline-none focus:border-amber-500">
-          <button onclick="loadClientJobs()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-3 rounded-xl font-bold text-xs transition-all cursor-pointer">بحث</button>
-        </div>
-      </div>
-
-      <div id="client-orders-list" class="space-y-3 pt-2">
-        <p class="text-xs text-slate-500 text-center py-6">أدخل رقم هاتفك لعرض حالة الطلبات وعروض الأسعار.</p>
-      </div>
     </div>
   </div>
 
@@ -364,7 +375,6 @@
       where 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 🌐 FIREBASE WEB CONFIGURATION
     const firebaseConfig = {
       apiKey: "AIzaSyDAKQDee6W-ojBZR0MjTEGpiQ0I4KsxzcA",
       authDomain: "sanayei-d359e.firebaseapp.com",
@@ -374,68 +384,56 @@
       appId: "1:246765308017:web:ec86cee27a8959b9af33d0"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     let allTechs = [];
-    let currentTechSession = null;
+    let currentTechSession = JSON.parse(localStorage.getItem('sanayei_tech_session')) || null;
 
-    // Timezone Utility for Sudan (GMT+2)
     function getSudanISOString() {
       const now = new Date();
-      const sudanOffsetMs = 2 * 60 * 60 * 1000;
-      const sudanDate = new Date(now.getTime() + sudanOffsetMs);
-      return sudanDate.toISOString();
+      return new Date(now.getTime() + (2 * 60 * 60 * 1000)).toISOString();
     }
 
-    function getSudanFormattedTime() {
-      return new Date().toLocaleString("ar-SD", {
-        timeZone: "Africa/Khartoum",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true
-      });
-    }
-
-    // --- PRICE FORMATTING UTILITIES ---
     function formatPriceInput(input) {
       let cursorPosition = input.selectionStart;
       let originalLength = input.value.length;
-
       let value = input.value.replace(/[^0-9.]/g, '');
       const parts = value.split('.');
-      if (parts.length > 2) {
-        value = parts[0] + '.' + parts.slice(1).join('');
-      }
-
-      if (parts[0]) {
-        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-      }
-
+      if (parts.length > 2) value = parts[0] + '.' + parts.slice(1).join('');
+      if (parts[0]) parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
       input.value = parts.join('.');
-
       let newLength = input.value.length;
       cursorPosition += (newLength - originalLength);
       input.setSelectionRange(cursorPosition, cursorPosition);
     }
 
-    // --- NAVIGATION & UI HANDLERS ---
-    function toggleView() {
-      const custView = document.getElementById('customer-view');
-      const techView = document.getElementById('tech-view');
-      const toggleBtn = document.getElementById('nav-toggle');
-      
-      if(!custView || !techView || !toggleBtn) return;
+    // --- TAB SWITCHING LOGIC ---
+    function switchTab(tabName) {
+      document.querySelectorAll('.app-view').forEach(v => v.classList.add('hidden'));
+      document.querySelectorAll('nav button').forEach(b => {
+        b.className = "flex flex-col items-center text-slate-400 hover:text-amber-400 transition-all relative cursor-pointer bg-transparent border-0 px-3 py-1";
+      });
 
-      if(custView.classList.contains('hidden')) {
-        custView.classList.remove('hidden');
-        techView.classList.add('hidden');
-        toggleBtn.innerHTML = '<i class="fa-solid fa-user-gear"></i> بوابة الفنيين';
-      } else {
-        custView.classList.add('hidden');
-        techView.classList.remove('hidden');
-        toggleBtn.innerHTML = '<i class="fa-solid fa-users"></i> استعراض الفنيين';
+      const targetView = document.getElementById(`view-${tabName}`);
+      const targetTab = document.getElementById(`tab-${tabName}`);
+
+      if (targetView) targetView.classList.remove('hidden');
+      if (targetTab) {
+        targetTab.className = "flex flex-col items-center text-amber-500 transition-all relative cursor-pointer bg-transparent border-0 px-3 py-1";
+      }
+
+      if (tabName === 'orders') {
+        const savedPhone = localStorage.getItem('sanayei_client_phone');
+        if (savedPhone) {
+          const trackInput = document.getElementById('track-phone');
+          if (trackInput && !trackInput.value) trackInput.value = savedPhone;
+          loadClientJobs();
+        }
+      }
+
+      if (tabName === 'tech' && currentTechSession) {
+        fetchTechJobs();
       }
     }
 
@@ -500,15 +498,11 @@
       const searchBox = document.getElementById('custom-search-box');
       searchBox.classList.remove('hidden');
       document.getElementById('search-input').focus();
-      handleCustomSearch(document.getElementById('search-input').value);
     }
 
     function handleCustomSearch(queryStr) {
       const q = queryStr.toLowerCase().trim();
-      if (!q) {
-        renderTechs(allTechs);
-        return;
-      }
+      if (!q) return renderTechs(allTechs);
       const filtered = allTechs.filter(t => 
         (t.name && t.name.toLowerCase().includes(q)) ||
         (t.trade && t.trade.toLowerCase().includes(q)) ||
@@ -518,36 +512,34 @@
     }
 
     function handleTradeChange(val) {
-      const customContainer = document.getElementById('custom-trade-container');
-      const customInput = document.getElementById('reg-custom-trade');
+      const container = document.getElementById('custom-trade-container');
+      const input = document.getElementById('reg-custom-trade');
       if (val === 'أخرى') {
-        customContainer.classList.remove('hidden');
-        customInput.required = true;
+        container.classList.remove('hidden');
+        input.required = true;
       } else {
-        customContainer.classList.add('hidden');
-        customInput.required = false;
-        customInput.value = '';
+        container.classList.add('hidden');
+        input.required = false;
+        input.value = '';
       }
     }
 
     function handleEditTradeChange(val) {
-      const customContainer = document.getElementById('edit-custom-trade-container');
-      const customInput = document.getElementById('edit-custom-trade');
+      const container = document.getElementById('edit-custom-trade-container');
+      const input = document.getElementById('edit-custom-trade');
       if (val === 'أخرى') {
-        customContainer.classList.remove('hidden');
-        customInput.required = true;
+        container.classList.remove('hidden');
+        input.required = true;
       } else {
-        customContainer.classList.add('hidden');
-        customInput.required = false;
-        customInput.value = '';
+        container.classList.add('hidden');
+        input.required = false;
+        input.value = '';
       }
     }
 
     function validateCustomTradeWords(input) {
       const words = input.value.trim().split(/\s+/).filter(Boolean);
-      if (words.length > 5) {
-        input.value = words.slice(0, 5).join(' ');
-      }
+      if (words.length > 5) input.value = words.slice(0, 5).join(' ');
     }
 
     function showRegisterModal() {
@@ -560,7 +552,6 @@
       document.getElementById('login-section').classList.remove('hidden');
     }
 
-    // --- EDIT PROFILE MODAL HANDLERS ---
     function openEditProfileModal() {
       if(!currentTechSession) return;
       document.getElementById('edit-name').value = currentTechSession.name || '';
@@ -573,13 +564,11 @@
       if(standardTrades.includes(currentTechSession.trade)) {
         tradeSelect.value = currentTechSession.trade;
         document.getElementById('edit-custom-trade-container').classList.add('hidden');
-        document.getElementById('edit-custom-trade').value = '';
       } else {
         tradeSelect.value = 'أخرى';
         document.getElementById('edit-custom-trade-container').classList.remove('hidden');
         document.getElementById('edit-custom-trade').value = currentTechSession.trade;
       }
-
       document.getElementById('edit-area').value = currentTechSession.area || '';
       document.getElementById('edit-profile-modal').classList.remove('hidden');
     }
@@ -591,184 +580,75 @@
     async function handleUpdateProfile(e) {
       e.preventDefault();
       if(!currentTechSession) return;
-
       const newName = document.getElementById('edit-name').value.trim();
       const newPhone = document.getElementById('edit-phone').value.trim();
       const cleanPhone = newPhone.replace(/\D/g, '');
       const newPinInput = document.getElementById('edit-pin').value.trim();
       const newArea = document.getElementById('edit-area').value.trim();
 
-      if (cleanPhone.length < 10) {
-        alert('رقم الهاتف غير صالح. يجب ألا يقل عن 10 أرقام.');
-        return;
-      }
-
-      if (newPinInput !== '' && newPinInput.length !== 6) {
-        alert('رمز الـ PIN الجديد يجب أن يكون مكوناً من 6 أرقام بالضبط.');
-        return;
-      }
+      if (cleanPhone.length < 10) { alert('رقم الهاتف غير صالح.'); return; }
+      if (newPinInput !== '' && newPinInput.length !== 6) { alert('رمز الـ PIN يجب أن يكون 6 أرقام.'); return; }
 
       let tradeVal = document.getElementById('edit-trade').value;
       if (tradeVal === 'أخرى') {
-        const customTradeVal = document.getElementById('edit-custom-trade').value.trim();
-        const wordCount = customTradeVal.split(/\s+/).filter(Boolean).length;
-        if (!customTradeVal) {
-          alert('يرجى كتابة التخصص المطلوب في حقل أخرى');
-          return;
-        }
-        if (wordCount > 5) {
-          alert('عذراً، يجب ألا يتجاوز التخصص المخصص 5 كلمات');
-          return;
-        }
-        tradeVal = customTradeVal;
+        tradeVal = document.getElementById('edit-custom-trade').value.trim();
+        if (!tradeVal) { alert('يرجى كتابة التخصص'); return; }
       }
 
       try {
-        if (cleanPhone !== currentTechSession.cleanPhone) {
-          const querySnapshot = await getDocs(collection(db, "technicians"));
-          let phoneExists = false;
-          querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            if ((data.phone || '').replace(/\D/g, '') === cleanPhone) {
-              phoneExists = true;
-            }
-          });
-          if (phoneExists) {
-            alert('رقم الهاتف الجديد مسجل مسبقاً لحساب آخر.');
-            return;
-          }
-        }
+        const updatedData = { name: newName, phone: newPhone, cleanPhone, trade: tradeVal, area: newArea };
+        if (newPinInput) updatedData.pin = newPinInput;
 
-        const updatedData = {
-          name: newName,
-          phone: newPhone,
-          cleanPhone: cleanPhone,
-          trade: tradeVal,
-          area: newArea
-        };
-
-        if (newPinInput !== '') {
-          updatedData.pin = newPinInput;
-        }
-
-        const techRef = doc(db, "technicians", currentTechSession.id);
-        await updateDoc(techRef, updatedData);
-
+        await updateDoc(doc(db, "technicians", currentTechSession.id), updatedData);
         currentTechSession = { ...currentTechSession, ...updatedData };
+        localStorage.setItem('sanayei_tech_session', JSON.stringify(currentTechSession));
+        
         document.getElementById('dash-name').innerText = currentTechSession.name;
         document.getElementById('dash-trade').innerText = `${currentTechSession.trade} • ${currentTechSession.area}`;
-
         alert('تم تحديث بياناتك بنجاح!');
         closeEditProfileModal();
         fetchTechnicians();
       } catch (err) {
-        console.error("Error updating profile:", err);
-        alert("حدث خطأ أثناء تحديث البيانات.");
+        console.error(err);
+        alert("حدث خطأ أثناء التحديث.");
       }
-    }
-
-    function isSequential(str) {
-      let asc = true, desc = true;
-      for (let i = 0; i < str.length - 1; i++) {
-        let curr = parseInt(str[i]);
-        let next = parseInt(str[i+1]);
-        if (next !== curr + 1) asc = false;
-        if (next !== curr - 1) desc = false;
-      }
-      return asc || desc;
     }
 
     async function handleRegister(e) {
       e.preventDefault();
-      
-      const agreeCheckbox = document.getElementById('reg-agree');
-      if(!agreeCheckbox || !agreeCheckbox.checked) {
-        alert('يجب الموافقة على شروط نسبة العمولة (10%) لإتمام التسجيل');
-        return;
-      }
-
       const pin = document.getElementById('reg-pin').value.trim();
       const confirmPin = document.getElementById('reg-confirm-pin').value.trim();
-
-      if (pin !== confirmPin) {
-        alert('رمز الـ PIN غير متطابق. يرجى التحقق من إعادة كتابة الرمز.');
-        return;
-      }
-
-      if(pin.length !== 6) {
-        alert('يجب أن يكون رمز الـ PIN مكوناً من 6 أرقام بالضبط');
-        return;
-      }
+      if (pin !== confirmPin) { alert('رمز الـ PIN غير متطابق.'); return; }
+      if (pin.length !== 6) { alert('يجب أن يكون الـ PIN 6 أرقام.'); return; }
 
       const rawPhone = document.getElementById('reg-phone').value.trim();
       const cleanPhone = rawPhone.replace(/\D/g, '');
-
-      if (cleanPhone.length < 10) {
-        alert('رقم الهاتف غير صالح. يجب ألا يقل عن 10 أرقام.');
-        return;
-      }
-
-      if (new Set(cleanPhone).size === 1) {
-        alert('رقم الهاتف غير صالح. لا يمكن أن تكون جميع الأرقام متشابهة.');
-        return;
-      }
-
-      const dummyPatterns = ['12345678', '01234567', '98765432', '0912345678', '0999999999'];
-      if (dummyPatterns.some(pattern => cleanPhone.includes(pattern)) || isSequential(cleanPhone)) {
-        alert('رقم الهاتف المدخل وهمي أو تسلسلي غير مسموح به. يرجى إدخال رقم هاتفك الحقيقي.');
-        return;
-      }
+      if (cleanPhone.length < 10) { alert('رقم الهاتف غير صالح.'); return; }
 
       let tradeVal = document.getElementById('reg-trade').value;
       if (tradeVal === 'أخرى') {
-        const customTradeVal = document.getElementById('reg-custom-trade').value.trim();
-        const wordCount = customTradeVal.split(/\s+/).filter(Boolean).length;
-        if (!customTradeVal) {
-          alert('يرجى كتابة التخصص المطلوب في حقل أخرى');
-          return;
-        }
-        if (wordCount > 5) {
-          alert('عذراً، يجب ألا يتجاوز التخصص المخصص 5 كلمات');
-          return;
-        }
-        tradeVal = customTradeVal;
+        tradeVal = document.getElementById('reg-custom-trade').value.trim();
+        if (!tradeVal) { alert('يرجى كتابة التخصص'); return; }
       }
 
       try {
-        const querySnapshot = await getDocs(collection(db, "technicians"));
-        let phoneExists = false;
-        querySnapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          const existingClean = (data.phone || '').replace(/\D/g, '');
-          if (existingClean === cleanPhone) {
-            phoneExists = true;
-          }
-        });
-
-        if (phoneExists) {
-          alert('رقم الهاتف مسجل مسبقاً بحساب آخر. يرجى استخدام رقم هاتف مختلف أو تسجيل الدخول.');
-          return;
-        }
-
         const payload = {
           name: document.getElementById('reg-name').value.trim(),
           phone: rawPhone,
-          cleanPhone: cleanPhone,
-          pin: pin,
+          cleanPhone,
+          pin,
           trade: tradeVal,
           area: document.getElementById('reg-area').value.trim(),
           createdAt: getSudanISOString()
         };
-
         await addDoc(collection(db, "technicians"), payload);
         alert('تم التسجيل بنجاح! يمكنك تسجيل الدخول الآن.');
         hideRegisterModal();
         e.target.reset();
-        document.getElementById('custom-trade-container').classList.add('hidden');
         fetchTechnicians();
       } catch (err) {
-        console.error("Registration error:", err);
-        alert("حدث خطأ أثناء التسجيل. يرجى إعادة المحاولة.");
+        console.error(err);
+        alert("حدث خطأ أثناء التسجيل.");
       }
     }
 
@@ -778,41 +658,50 @@
       const pin = document.getElementById('login-pin').value.trim();
 
       try {
-        const q = query(
-          collection(db, "technicians"), 
-          where("phone", "==", phone), 
-          where("pin", "==", pin)
-        );
+        const q = query(collection(db, "technicians"), where("phone", "==", phone), where("pin", "==", pin));
         const querySnapshot = await getDocs(q);
-
         if (!querySnapshot.empty) {
           const docSnap = querySnapshot.docs[0];
           currentTechSession = { id: docSnap.id, ...docSnap.data() };
           
-          document.getElementById('login-section').classList.add('hidden');
-          document.getElementById('dashboard-section').classList.remove('hidden');
-          document.getElementById('dash-name').innerText = currentTechSession.name;
-          document.getElementById('dash-trade').innerText = `${currentTechSession.trade} • ${currentTechSession.area}`;
-          fetchTechJobs();
+          localStorage.setItem('sanayei_tech_session', JSON.stringify(currentTechSession));
+
+          setupTechDashboardUI();
         } else {
           alert('رقم الهاتف أو رمز الـ PIN غير صحيح');
         }
       } catch (err) {
-        console.error("Login error:", err);
-        alert("حدث خطأ أثناء تسجيل الدخول.");
+        console.error(err);
+        alert("خطأ في تسجيل الدخول.");
       }
     }
 
+    function setupTechDashboardUI() {
+      if(!currentTechSession) return;
+      document.getElementById('login-section').classList.add('hidden');
+      document.getElementById('dashboard-section').classList.remove('hidden');
+      document.getElementById('dash-name').innerText = currentTechSession.name;
+      document.getElementById('dash-trade').innerText = `${currentTechSession.trade} • ${currentTechSession.area}`;
+      fetchTechJobs();
+    }
+
     function handleLogout() {
+      localStorage.removeItem('sanayei_tech_session');
       currentTechSession = null;
+      
       document.getElementById('dashboard-section').classList.add('hidden');
       document.getElementById('login-section').classList.remove('hidden');
       document.getElementById('login-form').reset();
+      
+      document.getElementById('tech-notif-dot').classList.add('hidden');
+      document.getElementById('tech-notif-ping').classList.add('hidden');
     }
 
     function openBookingModal(id, name) {
       document.getElementById('book-tech-id').value = id;
       document.getElementById('modal-tech-title').innerText = `طلب خدمة الفني: ${name}`;
+      const savedPhone = localStorage.getItem('sanayei_client_phone');
+      if(savedPhone) document.getElementById('book-client-phone').value = savedPhone;
       document.getElementById('booking-modal').classList.remove('hidden');
     }
 
@@ -822,10 +711,13 @@
 
     async function submitBooking(e) {
       e.preventDefault();
+      const clientPhone = document.getElementById('book-client-phone').value.trim();
+      localStorage.setItem('sanayei_client_phone', clientPhone);
+
       const payload = {
         techId: document.getElementById('book-tech-id').value,
         clientName: document.getElementById('book-client-name').value.trim(),
-        clientPhone: document.getElementById('book-client-phone').value.trim(),
+        clientPhone,
         address: document.getElementById('book-address').value.trim(),
         description: document.getElementById('book-desc').value.trim(),
         status: 'pending',
@@ -835,11 +727,11 @@
 
       try {
         await addDoc(collection(db, "jobs"), payload);
-        alert('تم إرسال طلبك بنجاح! يمكنك متابعة حالة الطلب وعرض التكلفة من زر "طلباتي" بالأعلى.');
+        alert('تم إرسال طلبك بنجاح! يمكنك متابعته من تبويب "طلباتي".');
         closeBookingModal();
         e.target.reset();
       } catch (err) {
-        console.error("Booking error:", err);
+        console.error(err);
         alert("حدث خطأ أثناء إرسال الطلب.");
       }
     }
@@ -847,13 +739,23 @@
     async function fetchTechJobs() {
       if(!currentTechSession) return;
       const container = document.getElementById('lead-list');
-      if(!container) return;
+      const techDot = document.getElementById('tech-notif-dot');
+      const techPing = document.getElementById('tech-notif-ping');
 
       try {
         const q = query(collection(db, "jobs"), where("techId", "==", currentTechSession.id));
         const querySnapshot = await getDocs(q);
         const jobs = [];
         querySnapshot.forEach((doc) => jobs.push({ id: doc.id, ...doc.data() }));
+
+        const pendingOrders = jobs.filter(j => j.status === 'pending');
+        if (pendingOrders.length > 0) {
+          if(techDot) techDot.classList.remove('hidden');
+          if(techPing) techPing.classList.remove('hidden');
+        } else {
+          if(techDot) techDot.classList.add('hidden');
+          if(techPing) techPing.classList.add('hidden');
+        }
 
         if(jobs.length === 0) {
           container.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">لا توجد طلبات عمل جديدة حالياً.</p>`;
@@ -862,129 +764,74 @@
 
         container.innerHTML = jobs.map(j => {
           let isAccepted = j.status === 'accepted';
-          
-          let statusBadgeText = '';
-          if(j.status === 'pending') statusBadgeText = 'بانتظار التسعير من قبلك';
-          else if(j.status === 'quoted') statusBadgeText = 'بانتظار موافقة العميل';
-          else if(j.status === 'accepted') statusBadgeText = 'تم القبول (تم تبادل الأرقام)';
-          else if(j.status === 'completed') statusBadgeText = 'مكتمل';
-          else statusBadgeText = 'مرفوض';
-
           return `
             <div class="bg-slate-900 border border-slate-700/80 p-4 rounded-2xl text-xs space-y-3 shadow-md">
               <div class="flex justify-between items-center">
                 <span class="font-bold text-white text-sm"><i class="fa-solid fa-user text-amber-500 ml-1"></i> ${j.clientName}</span>
                 <span class="bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded text-[10px] font-bold">
-                  ${statusBadgeText}
+                  ${j.status === 'pending' ? 'طلب جديد 🔔' : j.status === 'quoted' ? 'بانتظار العميل' : isAccepted ? 'تم القبول' : j.status}
                 </span>
               </div>
               <p class="text-slate-300"><i class="fa-solid fa-location-dot text-amber-500 ml-1"></i> ${j.address}</p>
-              <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 space-y-1">
-                <span class="text-amber-400 font-bold block text-[11px]"><i class="fa-solid fa-circle-info"></i> وصف العطل والخدمة بالتفصيل:</span>
-                <p class="text-slate-200 italic leading-relaxed">"${j.description}"</p>
+              <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
+                <p class="text-slate-200 italic">"${j.description}"</p>
               </div>
-              
-              <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
+              <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
                 <span class="text-slate-400">رقم الهاتف:</span>
                 <span class="font-mono font-bold ${isAccepted ? 'text-emerald-400' : 'text-amber-400/70'}">
                   ${isAccepted ? j.clientPhone : '🔒 يُكشف بعد موافقة العميل'}
                 </span>
               </div>
-
               ${j.status === 'pending' ? `
                 <div class="space-y-2 pt-2 border-t border-slate-800">
-                  <label class="text-slate-300 font-semibold block">التكلفة التقديرية بناءً على التفاصيل (جنيه سوداني):</label>
+                  <label class="text-slate-300 font-semibold block">التكلفة التقديرية (جنيه سوداني):</label>
                   <div class="flex gap-2">
                     <input type="text" id="quote-${j.id}" inputmode="decimal" oninput="formatPriceInput(this)" placeholder="0.00" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-mono focus:outline-none focus:border-amber-500">
-                    <button onclick="submitQuote('${j.id}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-2.5 rounded-xl transition-all cursor-pointer whitespace-nowrap">
-                      إرسال السعر
-                    </button>
+                    <button onclick="submitQuote('${j.id}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-2.5 rounded-xl transition-all cursor-pointer whitespace-nowrap">إرسال السعر</button>
                   </div>
                 </div>
-              ` : `
-                <div class="text-[11px] text-slate-400 bg-slate-800/40 p-2 rounded-xl">
-                  التكلفة المقدرة: <strong class="text-amber-400 font-mono">${j.estimatedCharges ? Number(j.estimatedCharges).toLocaleString('en-US') : 'غير محدد'} ج.س</strong>
-                </div>
-              `}
-
+              ` : ''}
               ${isAccepted ? `
                 <div class="pt-2 flex flex-col gap-2">
-                  <a href="tel:${j.clientPhone}" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-bold text-center shadow-md transition-all flex items-center justify-center gap-1.5">
+                  <a href="tel:${j.clientPhone}" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-bold text-center flex items-center justify-center gap-1.5">
                     <i class="fa-solid fa-phone"></i> اتصال هاتفي (${j.clientPhone})
                   </a>
-                  <button onclick="markJobDone('${j.id}', '${j.clientName}', '${j.clientPhone}', '${j.estimatedCharges}')" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
-                    <i class="fa-brands fa-whatsapp text-lg"></i> تم إنجاز العمل (إرسال إشعار العمولة للدعم)
+                  <button onclick="markJobDone('${j.id}', '${j.clientName}', '${j.clientPhone}', '${j.estimatedCharges}')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> إنجاز العمل وإشعار الدعم
                   </button>
                 </div>
               ` : ''}
             </div>
           `;
         }).join('');
-      } catch (err) {
-        console.error("Error fetching jobs:", err);
-      }
+      } catch (err) { console.error(err); }
     }
 
     async function submitQuote(jobId) {
       const input = document.getElementById(`quote-${jobId}`);
-      const rawVal = input.value.replace(/,/g, '').trim();
-      const val = parseFloat(rawVal);
-
-      if(!val || val <= 0) {
-        alert('يرجى إدخال التكلفة التقديرية بالجنيه السوداني');
-        return;
-      }
+      const val = parseFloat(input.value.replace(/,/g, '').trim());
+      if(!val || val <= 0) { alert('يرجى إدخال التكلفة التقديرية'); return; }
 
       try {
-        const jobRef = doc(db, "jobs", jobId);
-        await updateDoc(jobRef, {
-          estimatedCharges: val,
-          status: 'quoted'
-        });
-
-        alert('تم إرسال عرض السعر إلى العميل بنجاح!');
+        await updateDoc(doc(db, "jobs", jobId), { estimatedCharges: val, status: 'quoted' });
+        alert('تم إرسال عرض السعر بنجاح!');
         fetchTechJobs();
-      } catch (err) {
-        console.error("Error submitting quote:", err);
-        alert("حدث خطأ أثناء إرسال عرض السعر.");
-      }
+      } catch (err) { console.error(err); alert("حدث خطأ."); }
     }
 
     async function markJobDone(jobId, clientName, clientPhone, charges) {
       let techName = currentTechSession ? currentTechSession.name : 'الفني';
-      let formattedCharges = Number(charges).toLocaleString('en-US');
-      let message = `مرحباً، تم إنجاز العمل بنجاح عبر منصة صنايعي 🛠️.\n\n` +
-                    `👤 العميل: ${clientName}\n` +
-                    `🔧 الفني: ${techName}\n` +
-                    `💰 التكلفة النهائية: ${formattedCharges} ج.س\n` +
-                    `📌 ملاحظة: يرجى تحويل عمولة المنصة (10%): ${Math.round(Number(charges) * 0.1 || 0).toLocaleString('en-US')} ج.س عبر واتساب الدعم.`;
-
-      let encoded = encodeURIComponent(message);
-      window.open(`https://wa.me/249999119052?text=${encoded}`, '_blank');
-
-      try {
-        await updateDoc(doc(db, "jobs", jobId), { status: 'completed' });
-        fetchTechJobs();
-      } catch (err) {
-        console.error("Error completing job:", err);
-      }
-    }
-
-    function openClientTracker() {
-      document.getElementById('client-tracker-modal').classList.remove('hidden');
-    }
-
-    function closeClientTracker() {
-      document.getElementById('client-tracker-modal').classList.add('hidden');
+      let msg = `مرحباً، تم إنجاز العمل عبر صنايعي 🛠️\n👤 العميل: ${clientName}\n🔧 الفني: ${techName}\n💰 المبلغ: ${Number(charges).toLocaleString('en-US')} ج.س\nعمولة المنصة (10%): ${Math.round(Number(charges)*0.1).toLocaleString('en-US')} ج.س`;
+      window.open(`https://wa.me/249999119052?text=${encodeURIComponent(msg)}`, '_blank');
+      await updateDoc(doc(db, "jobs", jobId), { status: 'completed' });
+      fetchTechJobs();
     }
 
     async function loadClientJobs() {
       const phone = document.getElementById('track-phone').value.trim();
       const container = document.getElementById('client-orders-list');
-      if(!phone) {
-        alert('يرجى إدخال رقم الهاتف');
-        return;
-      }
+      if(!phone) { alert('يرجى إدخال رقم الهاتف'); return; }
+      localStorage.setItem('sanayei_client_phone', phone);
 
       try {
         const q = query(collection(db, "jobs"), where("clientPhone", "==", phone));
@@ -998,110 +845,69 @@
         }
 
         container.innerHTML = clientJobs.map(j => {
-          let tech = allTechs.find(t => t.id === j.techId) || { name: 'فني معتمد', trade: 'صيانة عامة', phone: '0912345678' };
+          let tech = allTechs.find(t => t.id === j.techId) || { name: 'فني معتمد', trade: 'صيانة', phone: '0912345678' };
           let hasQuote = j.estimatedCharges && j.estimatedCharges !== '';
           let isAccepted = j.status === 'accepted';
-          
-          let safeClientName = (j.clientName || '').replace(/'/g, "\\'");
-          let safeClientPhone = (j.clientPhone || '').replace(/'/g, "\\'");
-          let safeTechName = (tech.name || '').replace(/'/g, "\\'");
-          let safeTechPhone = (tech.phone || '').replace(/'/g, "\\'");
-
-          let clientStatusText = '';
-          if(!hasQuote) clientStatusText = 'بانتظار تسعير الفني';
-          else if(j.status === 'quoted') clientStatusText = 'عرض سعر جديد (بانتظار موافقتك)';
-          else if(j.status === 'accepted') clientStatusText = 'تم القبول (تم تبادل الأرقام)';
-          else if(j.status === 'completed') clientStatusText = 'مكتمل';
-          else clientStatusText = 'مرفوض';
 
           return `
             <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl text-xs space-y-3">
               <div class="flex justify-between items-center">
                 <span class="font-bold text-white text-sm">الفني: ${tech.name} (${tech.trade})</span>
                 <span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded text-[10px] font-bold">
-                  ${clientStatusText}
+                  ${!hasQuote ? 'بانتظار التسعير' : j.status === 'quoted' ? 'عرض سعر جديد' : isAccepted ? 'تم القبول' : j.status}
                 </span>
               </div>
-              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 space-y-1">
-                <span class="text-amber-400 font-bold block text-[10px]">تفاصيل الطلب المرسلة:</span>
-                <p class="text-slate-300 italic">"${j.description}"</p>
-              </div>
-              <p class="text-slate-400"><strong>العنوان:</strong> ${j.address}</p>
-
-              <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
-                <span class="text-slate-400">رقم هاتف الفني:</span>
+              <p class="text-slate-300"><strong>العطل:</strong> "${j.description}"</p>
+              <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
+                <span class="text-slate-400">رقم الفني:</span>
                 <span class="font-mono font-bold ${isAccepted ? 'text-emerald-400' : 'text-amber-400/70'}">
-                  ${isAccepted ? tech.phone : '🔒 يُكشف بعد قبول عرض السعر'}
+                  ${isAccepted ? tech.phone : '🔒 يُكشف بعد قبول السعر'}
                 </span>
               </div>
-
               ${hasQuote ? `
-                <div class="bg-slate-900/80 p-3 rounded-xl border border-amber-500/30 space-y-2">
+                <div class="bg-slate-900 p-3 rounded-xl border border-amber-500/30 space-y-2">
                   <div class="flex justify-between items-center">
-                    <span class="text-slate-300">التكلفة التقديرية المقترحة:</span>
+                    <span class="text-slate-300">التكلفة المقترحة:</span>
                     <span class="text-amber-400 font-black font-mono text-sm">${Number(j.estimatedCharges).toLocaleString('en-US')} ج.س</span>
                   </div>
                   ${j.status === 'quoted' ? `
                     <div class="flex gap-2 pt-1">
-                      <button onclick="updateClientJobStatus('${j.id}', 'accepted', '${safeClientName}', '${safeClientPhone}', '${safeTechName}', '${safeTechPhone}', ${j.estimatedCharges})" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg transition-all cursor-pointer">قبول السعر</button>
-                      <button onclick="updateClientJobStatus('${j.id}', 'rejected', '${safeClientName}', '${safeClientPhone}', '${safeTechName}', '${safeTechPhone}', ${j.estimatedCharges})" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-lg transition-all cursor-pointer">رفض</button>
+                      <button onclick="updateClientJobStatus('${j.id}', 'accepted')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg cursor-pointer">قبول السعر</button>
+                      <button onclick="updateClientJobStatus('${j.id}', 'rejected')" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-lg cursor-pointer">رفض</button>
                     </div>
                   ` : isAccepted ? `
-                    <p class="text-emerald-400 text-center font-bold pt-1">تم قبول السعر وتبادل الأرقام بنجاح!</p>
-                    <a href="tel:${tech.phone}" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold text-center shadow-md transition-all flex items-center justify-center gap-1.5">
+                    <a href="tel:${tech.phone}" class="w-full mt-2 bg-emerald-600 text-white px-4 py-2 rounded-xl font-bold text-center flex items-center justify-center gap-1.5">
                       <i class="fa-solid fa-phone"></i> اتصال بالفني (${tech.phone})
                     </a>
                   ` : ''}
                 </div>
-              ` : `
-                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-amber-400/90 text-center font-bold">
-                  <i class="fa-solid fa-hourglass-half ml-1"></i> بانتظار تسعير الفني بناءً على تفاصيل العطل
-                </div>
-              `}
+              ` : ''}
             </div>
           `;
         }).join('');
-      } catch (err) {
-        console.error("Error loading client jobs:", err);
-      }
+      } catch (err) { console.error(err); }
     }
 
-    async function updateClientJobStatus(jobId, newStatus, clientName, clientPhone, techName, techPhone, agreedPrice) {
+    async function updateClientJobStatus(jobId, newStatus) {
       try {
-        const jobRef = doc(db, "jobs", jobId);
-
-        if(newStatus === 'accepted') {
-          await updateDoc(jobRef, {
-            status: 'accepted',
-            acceptedAt: getSudanISOString()
-          });
-
-          await addDoc(collection(db, "accepted_prices"), {
-            jobId: jobId,
-            clientName: clientName,
-            clientPhone: clientPhone,
-            techName: techName,
-            techPhone: techPhone,
-            agreedPrice: Number(agreedPrice),
-            currency: "SDG",
-            timestamp: getSudanISOString(),
-            formattedTime: getSudanFormattedTime()
-          });
-
-          alert('تم قبول السعر بنجاح! تم تبادل الأرقام وتفعيل الاتصال المباشر.');
-        } else {
-          await updateDoc(jobRef, { status: 'rejected' });
-          alert('تم رفض السعر.');
-        }
+        await updateDoc(doc(db, "jobs", jobId), { status: newStatus });
+        alert(newStatus === 'accepted' ? 'تم قبول السعر بنجاح وتفعيل التواصل!' : 'تم رفض السعر.');
         loadClientJobs();
-      } catch (err) {
-        console.error("Error updating status:", err);
-        alert("حدث خطأ أثناء تحديث حالة الطلب.");
-      }
+      } catch (err) { console.error(err); }
     }
 
+    if (currentTechSession) {
+      setupTechDashboardUI();
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+
+    window.switchTab = switchTab;
     window.formatPriceInput = formatPriceInput;
-    window.toggleView = toggleView;
     window.filterTrade = filterTrade;
     window.toggleOtherSearch = toggleOtherSearch;
     window.handleCustomSearch = handleCustomSearch;
@@ -1122,8 +928,6 @@
     window.fetchTechJobs = fetchTechJobs;
     window.submitQuote = submitQuote;
     window.markJobDone = markJobDone;
-    window.openClientTracker = openClientTracker;
-    window.closeClientTracker = closeClientTracker;
     window.loadClientJobs = loadClientJobs;
     window.updateClientJobStatus = updateClientJobStatus;
 
