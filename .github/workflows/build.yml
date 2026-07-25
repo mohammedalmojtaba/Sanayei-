@@ -24,7 +24,7 @@ jobs:
       - name: Prepare www folder for Capacitor
         run: |
           mkdir -p www
-          find . -maxdepth 1 ! -name '.' ! -name 'www' ! -name 'android' ! -name 'node_modules' ! -name '.git' ! -name '.github' -exec cp -r {} www/ \;
+          find . -maxdepth 1 ! -name '.' ! -name 'www' ! -name 'android' ! -name 'node_modules' ! -name '.git' ! -name '.github' -exec cp -r {} www/ \; || true
 
       - name: Initialize & Sync Capacitor Android
         run: |
@@ -37,11 +37,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Clear Gradle Cache
+        run: rm -rf ~/.gradle/caches/
+
       - name: Build Android Debug APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew clean assembleDebug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
