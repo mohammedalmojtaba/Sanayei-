@@ -21,6 +21,11 @@ jobs:
           npm install
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
+      - name: Prepare www folder for Capacitor
+        run: |
+          mkdir -p www
+          find . -maxdepth 1 ! -name '.' ! -name 'www' ! -name 'android' ! -name 'node_modules' ! -name '.git' ! -name '.github' -exec cp -r {} www/ \;
+
       - name: Initialize & Sync Capacitor Android
         run: |
           npx cap add android || true
