@@ -256,7 +256,7 @@
           <input type="tel" id="edit-phone" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white font-mono focus:outline-none focus:border-amber-500">
         </div>
         <div>
-          <label class="text-xs font-semibold text-slate-300 block mb-1">رمز الـ PIN الجديد (اتركه فارغاً إن لمغن ترغب بتغييره - 6 أرقام)</label>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">رمز الـ PIN الجديد (اتركه فارغاً إن لم ترغب بتغييره - 6 أرقام)</label>
           <input type="password" id="edit-pin" maxlength="6" placeholder="******" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-center tracking-widest text-white font-mono focus:outline-none focus:border-amber-500">
         </div>
         <div>
@@ -313,8 +313,9 @@
           <input type="text" id="book-address" placeholder="مثال: بورتسودان، هدل، بالقرب من سوق هدل" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
         </div>
         <div>
-          <label class="text-xs font-semibold text-slate-300 block mb-1">وصف العطل باختصار</label>
-          <textarea id="book-desc" rows="2" placeholder="ما الذي يحتاج إلى صيانة؟" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"></textarea>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">تفاصيل العطل أو الخدمة المطلوبة</label>
+          <textarea id="book-desc" rows="3" placeholder="اشرح تفاصيل العطل والمشكلة بدقة ليتمكن الفني من منحك السعر الصحيح..." required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"></textarea>
+          <p class="text-[10px] text-amber-400 mt-1">كلما كانت التفاصيل أوضح، كلما تمكن الفني من تحديد التكلفة الصحيحة بدقة.</p>
         </div>
         <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-500/20 transition-all mt-2 cursor-pointer">
           إرسال طلب الخدمة للفني
@@ -623,7 +624,6 @@
       }
 
       try {
-        // Check if phone changed and if new phone already exists
         if (cleanPhone !== currentTechSession.cleanPhone) {
           const querySnapshot = await getDocs(collection(db, "technicians"));
           let phoneExists = false;
@@ -654,7 +654,6 @@
         const techRef = doc(db, "technicians", currentTechSession.id);
         await updateDoc(techRef, updatedData);
 
-        // Update current local session
         currentTechSession = { ...currentTechSession, ...updatedData };
         document.getElementById('dash-name').innerText = currentTechSession.name;
         document.getElementById('dash-trade').innerText = `${currentTechSession.trade} • ${currentTechSession.area}`;
@@ -668,7 +667,6 @@
       }
     }
 
-    // --- HELPER TO CHECK SEQUENTIAL / DUMMY PATTERNS ---
     function isSequential(str) {
       let asc = true, desc = true;
       for (let i = 0; i < str.length - 1; i++) {
@@ -680,7 +678,6 @@
       return asc || desc;
     }
 
-    // --- TECHNICIAN REGISTRATION & LOGIN (FIREBASE) ---
     async function handleRegister(e) {
       e.preventDefault();
       
@@ -813,7 +810,6 @@
       document.getElementById('login-form').reset();
     }
 
-    // --- SERVICE BOOKING & JOBS (FIREBASE) ---
     function openBookingModal(id, name) {
       document.getElementById('book-tech-id').value = id;
       document.getElementById('modal-tech-title').innerText = `طلب خدمة الفني: ${name}`;
@@ -883,7 +879,10 @@
                 </span>
               </div>
               <p class="text-slate-300"><i class="fa-solid fa-location-dot text-amber-500 ml-1"></i> ${j.address}</p>
-              <p class="text-slate-400 italic bg-slate-800/50 p-2.5 rounded-xl border border-slate-800">"${j.description}"</p>
+              <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 space-y-1">
+                <span class="text-amber-400 font-bold block text-[11px]"><i class="fa-solid fa-circle-info"></i> وصف العطل والخدمة بالتفصيل:</span>
+                <p class="text-slate-200 italic leading-relaxed">"${j.description}"</p>
+              </div>
               
               <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
                 <span class="text-slate-400">رقم الهاتف:</span>
@@ -894,7 +893,7 @@
 
               ${j.status === 'pending' ? `
                 <div class="space-y-2 pt-2 border-t border-slate-800">
-                  <label class="text-slate-300 font-semibold block">التكلفة التقديرية (جنية سوداني):</label>
+                  <label class="text-slate-300 font-semibold block">التكلفة التقديرية بناءً على التفاصيل (جنيه سوداني):</label>
                   <div class="flex gap-2">
                     <input type="text" id="quote-${j.id}" inputmode="decimal" oninput="formatPriceInput(this)" placeholder="0.00" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-mono focus:outline-none focus:border-amber-500">
                     <button onclick="submitQuote('${j.id}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-2.5 rounded-xl transition-all cursor-pointer whitespace-nowrap">
@@ -971,7 +970,6 @@
       }
     }
 
-    // --- CLIENT TRACKING MODAL ---
     function openClientTracker() {
       document.getElementById('client-tracker-modal').classList.remove('hidden');
     }
@@ -1024,7 +1022,10 @@
                   ${clientStatusText}
                 </span>
               </div>
-              <p class="text-slate-300"><strong>العطل:</strong> ${j.description}</p>
+              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 space-y-1">
+                <span class="text-amber-400 font-bold block text-[10px]">تفاصيل الطلب المرسلة:</span>
+                <p class="text-slate-300 italic">"${j.description}"</p>
+              </div>
               <p class="text-slate-400"><strong>العنوان:</strong> ${j.address}</p>
 
               <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-700 flex justify-between items-center">
@@ -1054,7 +1055,7 @@
                 </div>
               ` : `
                 <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-amber-400/90 text-center font-bold">
-                  <i class="fa-solid fa-hourglass-half ml-1"></i> بانتظار تسعير الفني
+                  <i class="fa-solid fa-hourglass-half ml-1"></i> بانتظار تسعير الفني بناءً على تفاصيل العطل
                 </div>
               `}
             </div>
@@ -1099,7 +1100,6 @@
       }
     }
 
-    // --- BIND FUNCTIONS TO GLOBAL WINDOW SCOPE FOR HTML HANDLERS ---
     window.formatPriceInput = formatPriceInput;
     window.toggleView = toggleView;
     window.filterTrade = filterTrade;
@@ -1127,7 +1127,6 @@
     window.loadClientJobs = loadClientJobs;
     window.updateClientJobStatus = updateClientJobStatus;
 
-    // Initial Load
     fetchTechnicians();
   </script>
 </body>
