@@ -131,9 +131,14 @@
             <h3 id="dash-name" class="font-black text-white text-base">مرحباً</h3>
             <p id="dash-trade" class="text-xs text-slate-400 font-medium"></p>
           </div>
-          <button onclick="handleLogout()" class="bg-slate-900/80 hover:bg-slate-900 border border-slate-700 text-xs px-3.5 py-2 rounded-xl text-red-400 font-bold transition-all shadow cursor-pointer">
-            <i class="fa-solid fa-right-from-bracket ml-1"></i> خروج
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="openEditProfileModal()" class="bg-slate-900/80 hover:bg-slate-900 border border-slate-700 text-xs px-3 py-2 rounded-xl text-amber-400 font-bold transition-all shadow cursor-pointer" title="تعديل البيانات الشخصية">
+              <i class="fa-solid fa-user-pen"></i> تعديل
+            </button>
+            <button onclick="handleLogout()" class="bg-slate-900/80 hover:bg-slate-900 border border-slate-700 text-xs px-3 py-2 rounded-xl text-red-400 font-bold transition-all shadow cursor-pointer" title="تسجيل الخروج">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
         </div>
 
         <div class="bg-slate-800/90 border border-slate-700 p-5 rounded-3xl shadow-xl">
@@ -229,6 +234,60 @@
 
     </div>
   </main>
+
+  <!-- Edit Profile Modal -->
+  <div id="edit-profile-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-black text-base text-white flex items-center gap-2">
+          <i class="fa-solid fa-user-pen text-amber-500"></i> تعديل بيانات الفني
+        </h3>
+        <button type="button" onclick="closeEditProfileModal()" class="text-slate-400 hover:text-white cursor-pointer bg-transparent border-0">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <form onsubmit="handleUpdateProfile(event)" class="space-y-3">
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">الاسم الكامل</label>
+          <input type="text" id="edit-name" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">رقم الهاتف</label>
+          <input type="tel" id="edit-phone" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white font-mono focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">رمز الـ PIN الجديد (اتركه فارغاً إن لمغن ترغب بتغييره - 6 أرقام)</label>
+          <input type="password" id="edit-pin" maxlength="6" placeholder="******" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-center tracking-widest text-white font-mono focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">التخصص المهني</label>
+          <select id="edit-trade" onchange="handleEditTradeChange(this.value)" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+            <option value="كهربائي">كهربائي</option>
+            <option value="سباك">سباك</option>
+            <option value="مكيفات">صيانة مكيفات</option>
+            <option value="مولدات">ميكانيكي مولدات</option>
+            <option value="نجار">نجار</option>
+            <option value="أخرى">أخرى</option>
+          </select>
+        </div>
+
+        <!-- Custom Trade Edit Input -->
+        <div id="edit-custom-trade-container" class="hidden">
+          <label class="text-xs font-semibold text-slate-300 block mb-1">اكتب التخصص بدقة (حد أقصى 5 كلمات)</label>
+          <input type="text" id="edit-custom-trade" oninput="validateCustomTradeWords(this)" placeholder="مثال: فني كاميرات مراقبة" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">الحي / المنطقة في السودان</label>
+          <input type="text" id="edit-area" required class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+        </div>
+
+        <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-black py-3.5 rounded-xl text-sm shadow-lg shadow-amber-500/20 transition-all mt-2 cursor-pointer">
+          حفظ التعديلات
+        </button>
+      </form>
+    </div>
+  </div>
 
   <!-- Booking Modal -->
   <div id="booking-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
@@ -470,6 +529,19 @@
       }
     }
 
+    function handleEditTradeChange(val) {
+      const customContainer = document.getElementById('edit-custom-trade-container');
+      const customInput = document.getElementById('edit-custom-trade');
+      if (val === 'أخرى') {
+        customContainer.classList.remove('hidden');
+        customInput.required = true;
+      } else {
+        customContainer.classList.add('hidden');
+        customInput.required = false;
+        customInput.value = '';
+      }
+    }
+
     function validateCustomTradeWords(input) {
       const words = input.value.trim().split(/\s+/).filter(Boolean);
       if (words.length > 5) {
@@ -485,6 +557,115 @@
     function hideRegisterModal() {
       document.getElementById('register-section').classList.add('hidden');
       document.getElementById('login-section').classList.remove('hidden');
+    }
+
+    // --- EDIT PROFILE MODAL HANDLERS ---
+    function openEditProfileModal() {
+      if(!currentTechSession) return;
+      document.getElementById('edit-name').value = currentTechSession.name || '';
+      document.getElementById('edit-phone').value = currentTechSession.phone || '';
+      document.getElementById('edit-pin').value = '';
+      
+      const tradeSelect = document.getElementById('edit-trade');
+      const standardTrades = ['كهربائي', 'سباك', 'مكيفات', 'مولدات', 'نجار'];
+      
+      if(standardTrades.includes(currentTechSession.trade)) {
+        tradeSelect.value = currentTechSession.trade;
+        document.getElementById('edit-custom-trade-container').classList.add('hidden');
+        document.getElementById('edit-custom-trade').value = '';
+      } else {
+        tradeSelect.value = 'أخرى';
+        document.getElementById('edit-custom-trade-container').classList.remove('hidden');
+        document.getElementById('edit-custom-trade').value = currentTechSession.trade;
+      }
+
+      document.getElementById('edit-area').value = currentTechSession.area || '';
+      document.getElementById('edit-profile-modal').classList.remove('hidden');
+    }
+
+    function closeEditProfileModal() {
+      document.getElementById('edit-profile-modal').classList.add('hidden');
+    }
+
+    async function handleUpdateProfile(e) {
+      e.preventDefault();
+      if(!currentTechSession) return;
+
+      const newName = document.getElementById('edit-name').value.trim();
+      const newPhone = document.getElementById('edit-phone').value.trim();
+      const cleanPhone = newPhone.replace(/\D/g, '');
+      const newPinInput = document.getElementById('edit-pin').value.trim();
+      const newArea = document.getElementById('edit-area').value.trim();
+
+      if (cleanPhone.length < 10) {
+        alert('رقم الهاتف غير صالح. يجب ألا يقل عن 10 أرقام.');
+        return;
+      }
+
+      if (newPinInput !== '' && newPinInput.length !== 6) {
+        alert('رمز الـ PIN الجديد يجب أن يكون مكوناً من 6 أرقام بالضبط.');
+        return;
+      }
+
+      let tradeVal = document.getElementById('edit-trade').value;
+      if (tradeVal === 'أخرى') {
+        const customTradeVal = document.getElementById('edit-custom-trade').value.trim();
+        const wordCount = customTradeVal.split(/\s+/).filter(Boolean).length;
+        if (!customTradeVal) {
+          alert('يرجى كتابة التخصص المطلوب في حقل أخرى');
+          return;
+        }
+        if (wordCount > 5) {
+          alert('عذراً، يجب ألا يتجاوز التخصص المخصص 5 كلمات');
+          return;
+        }
+        tradeVal = customTradeVal;
+      }
+
+      try {
+        // Check if phone changed and if new phone already exists
+        if (cleanPhone !== currentTechSession.cleanPhone) {
+          const querySnapshot = await getDocs(collection(db, "technicians"));
+          let phoneExists = false;
+          querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            if ((data.phone || '').replace(/\D/g, '') === cleanPhone) {
+              phoneExists = true;
+            }
+          });
+          if (phoneExists) {
+            alert('رقم الهاتف الجديد مسجل مسبقاً لحساب آخر.');
+            return;
+          }
+        }
+
+        const updatedData = {
+          name: newName,
+          phone: newPhone,
+          cleanPhone: cleanPhone,
+          trade: tradeVal,
+          area: newArea
+        };
+
+        if (newPinInput !== '') {
+          updatedData.pin = newPinInput;
+        }
+
+        const techRef = doc(db, "technicians", currentTechSession.id);
+        await updateDoc(techRef, updatedData);
+
+        // Update current local session
+        currentTechSession = { ...currentTechSession, ...updatedData };
+        document.getElementById('dash-name').innerText = currentTechSession.name;
+        document.getElementById('dash-trade').innerText = `${currentTechSession.trade} • ${currentTechSession.area}`;
+
+        alert('تم تحديث بياناتك بنجاح!');
+        closeEditProfileModal();
+        fetchTechnicians();
+      } catch (err) {
+        console.error("Error updating profile:", err);
+        alert("حدث خطأ أثناء تحديث البيانات.");
+      }
     }
 
     // --- HELPER TO CHECK SEQUENTIAL / DUMMY PATTERNS ---
@@ -525,20 +706,16 @@
       const rawPhone = document.getElementById('reg-phone').value.trim();
       const cleanPhone = rawPhone.replace(/\D/g, '');
 
-      // 1. Minimum Length Validation (At least 10 digits)
       if (cleanPhone.length < 10) {
         alert('رقم الهاتف غير صالح. يجب ألا يقل عن 10 أرقام.');
         return;
       }
 
-      // 2. Anti-Spam / Dummy Number Validation
-      // Check if all digits are identical (e.g. 0000000000, 1111111111)
       if (new Set(cleanPhone).size === 1) {
         alert('رقم الهاتف غير صالح. لا يمكن أن تكون جميع الأرقام متشابهة.');
         return;
       }
 
-      // Check for placeholder sequences or full sequential numbers (like 12345678, 0912345678)
       const dummyPatterns = ['12345678', '01234567', '98765432', '0912345678', '0999999999'];
       if (dummyPatterns.some(pattern => cleanPhone.includes(pattern)) || isSequential(cleanPhone)) {
         alert('رقم الهاتف المدخل وهمي أو تسلسلي غير مسموح به. يرجى إدخال رقم هاتفك الحقيقي.');
@@ -561,7 +738,6 @@
       }
 
       try {
-        // 3. Uniqueness Check (Querying database for existing phone)
         const querySnapshot = await getDocs(collection(db, "technicians"));
         let phoneExists = false;
         querySnapshot.forEach((docSnap) => {
@@ -930,9 +1106,13 @@
     window.toggleOtherSearch = toggleOtherSearch;
     window.handleCustomSearch = handleCustomSearch;
     window.handleTradeChange = handleTradeChange;
+    window.handleEditTradeChange = handleEditTradeChange;
     window.validateCustomTradeWords = validateCustomTradeWords;
     window.showRegisterModal = showRegisterModal;
     window.hideRegisterModal = hideRegisterModal;
+    window.openEditProfileModal = openEditProfileModal;
+    window.closeEditProfileModal = closeEditProfileModal;
+    window.handleUpdateProfile = handleUpdateProfile;
     window.handleRegister = handleRegister;
     window.handleLogin = handleLogin;
     window.handleLogout = handleLogout;
